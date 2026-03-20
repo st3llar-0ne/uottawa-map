@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>uOttawa Campus Map / Carte du campus</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- Official uOttawa fonts: Work Sans (sans) + Spectral (serif) -->
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ─── OFFICIAL uOTTAWA BRAND TOKENS ─────────────────────────────── */
+:root{
+  --garnet:    #8F001A;
+  --garnet-dk: #6B0014;
+  --garnet-lt: #A8001F;
+  --warm-grey: #80746C;
+  --charcoal:  #2D2D2C;
+  --lt-grey:   #ACA39A;
+  --polar:     #F2F2F2;
+  --white:     #FFFFFF;
+  --border:    #DDD8D3;
+  --shadow:    0 4px 20px rgba(0,0,0,.10);
+  /* category colours – chosen to meet WCAG AA on white */
+  --c-academic:  #1A4FA0;
+  --c-residence: #1A6B3A;
+  --c-sports:    #B05A00;
+  --c-services:  #5B2D8E;
+  --c-library:   #7A4000;
+  --c-transit:   #00607A;
+  /* route colours */
+  --tunnel-col:   #1A4FA0;
+  --overpass-col: #B05A00;
+  --access-col:   #1A6B3A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Work Sans',sans-serif;background:var(--polar);color:var(--charcoal);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ─── HEADER ─────────────────────────────────────────────────────── */
+header{
+  background:var(--garnet);color:var(--white);
+  padding:0 20px;height:60px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,.30);z-index:1000;
+}
+.logo-zone{display:flex;align-items:center;gap:11px;flex-shrink:0}
+.logo-text h1{font-family:'Spectral',serif;font-size:1.1rem;font-weight:600;line-height:1.2}
+.logo-text h1 em{font-style:normal;font-weight:300}
+.logo-sub{font-family:'Work Sans',sans-serif;font-size:.6rem;font-weight:400;opacity:.75;letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+
+/* Language toggle */
+.lang-btn{
+  background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.35);
+  color:var(--white);padding:4px 12px;border-radius:4px;
+  font-family:'Work Sans',sans-serif;font-size:.75rem;font-weight:600;
+  cursor:pointer;letter-spacing:.05em;transition:background .2s;flex-shrink:0;
+}
+.lang-btn:hover{background:rgba(255,255,255,.25)}
+
+.header-controls{display:flex;align-items:center;gap:8px}
+
+/* toggle buttons */
+.tog{
+  background:rgba(255,255,255,.13);border:1.5px solid rgba(255,255,255,.28);
+  color:var(--white);padding:5px 12px;border-radius:4px;
+  font-family:'Work Sans',sans-serif;font-size:.72rem;font-weight:500;
+  cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0;
+}
+.tog:hover{background:rgba(255,255,255,.22)}
+.tog.on{background:var(--white);color:var(--garnet);border-color:var(--white);font-weight:700}
+
+/* search */
+.sw{position:relative;width:210px}
+.sw input{
+  width:100%;padding:6px 12px 6px 32px;border:none;border-radius:4px;
+  background:rgba(255,255,255,.15);color:var(--white);
+  font-family:'Work Sans',sans-serif;font-size:.8rem;outline:none;transition:background .2s;
+}
+.sw input::placeholder{color:rgba(255,255,255,.5)}
+.sw input:focus{background:rgba(255,255,255,.22)}
+.s-ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);opacity:.6;pointer-events:none}
+#sr{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--white);border-radius:4px;box-shadow:var(--shadow);z-index:9999;overflow:hidden;display:none}
+.sri{padding:8px 13px;cursor:pointer;font-size:.8rem;color:var(--charcoal);border-bottom:1px solid var(--border);transition:background .15s}
+.sri:last-child{border-bottom:none}
+.sri:hover{background:var(--polar)}
+.sri strong{color:var(--garnet);display:block;font-size:.68rem;margin-top:1px}
+
+/* ─── BODY ───────────────────────────────────────────────────────── */
+.app-body{display:flex;flex:1;overflow:hidden}
+
+/* ─── SIDEBAR ────────────────────────────────────────────────────── */
+aside{width:285px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:10}
+.fh{padding:14px 16px 11px;border-bottom:1px solid var(--border)}
+.fh h2{font-family:'Spectral',serif;font-size:.95rem;font-weight:600;margin-bottom:10px;color:var(--charcoal)}
+.pills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{padding:3px 11px;border-radius:3px;font-size:.68rem;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all .18s;letter-spacing:.03em;text-transform:uppercase}
+.pill:focus-visible{outline:3px solid var(--charcoal);outline-offset:2px}
+.pill.active{color:var(--white) !important}
+.pill[data-cat="all"]{border-color:var(--garnet);color:var(--garnet)}.pill[data-cat="all"].active{background:var(--garnet);color:var(--white)}
+.pill[data-cat="academic"]{border-color:var(--c-academic);color:var(--c-academic)}.pill[data-cat="academic"].active{background:var(--c-academic)}
+.pill[data-cat="residence"]{border-color:var(--c-residence);color:var(--c-residence)}.pill[data-cat="residence"].active{background:var(--c-residence)}
+.pill[data-cat="sports"]{border-color:var(--c-sports);color:var(--c-sports)}.pill[data-cat="sports"].active{background:var(--c-sports)}
+.pill[data-cat="services"]{border-color:var(--c-services);color:var(--c-services)}.pill[data-cat="services"].active{background:var(--c-services)}
+.pill[data-cat="library"]{border-color:var(--c-library);color:var(--c-library)}.pill[data-cat="library"].active{background:var(--c-library)}
+.pill[data-cat="transit"]{border-color:var(--c-transit);color:var(--c-transit)}.pill[data-cat="transit"].active{background:var(--c-transit)}
+
+/* route legend strip */
+.rl{padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:14px;flex-wrap:wrap}
+.rl-item{display:flex;align-items:center;gap:5px;font-size:.67rem;color:var(--warm-grey);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.rl-swatch{width:20px;height:4px;border-radius:1px;flex-shrink:0}
+.rl-dash{background-image:repeating-linear-gradient(90deg,currentColor 0,currentColor 5px,transparent 5px,transparent 9px)}
+
+/* building list */
+.bl{flex:1;overflow-y:auto;padding:4px 0}
+.bl::-webkit-scrollbar{width:4px}
+.bl::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.bi{display:flex;align-items:flex-start;gap:9px;padding:9px 16px;cursor:pointer;transition:background .15s;border-left:3px solid transparent}
+.bi:hover{background:var(--polar)}
+.bi:focus-visible{outline:3px solid var(--garnet);outline-offset:-3px;background:var(--polar)}
+.bi.active{background:var(--garnet);border-left-color:var(--garnet-dk)}
+.bi.active .b-name{color:var(--white)}
+.bi.active .b-meta{color:rgba(255,255,255,.75)}
+.bi.active .b-dot{border:2px solid rgba(255,255,255,.6)}
+.b-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.b-info{min-width:0;flex:1}
+.b-name{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--charcoal)}
+.b-meta{font-size:.67rem;color:var(--warm-grey);margin-top:2px}
+
+/* ─── MAP ────────────────────────────────────────────────────────── */
+#map{flex:1;height:100%;z-index:1}
+
+/* ─── POPUP ──────────────────────────────────────────────────────── */
+.leaflet-popup-content-wrapper{border-radius:4px!important;box-shadow:0 8px 28px rgba(0,0,0,.18)!important;padding:0!important;overflow:hidden}
+.leaflet-popup-content{margin:0!important;width:295px!important}
+.leaflet-popup-tip-container{margin-top:-1px}
+.ph{padding:12px 16px 10px;color:var(--white)}
+.ph h3{font-family:'Spectral',serif;font-size:1rem;font-weight:600;line-height:1.3}
+.ph-code{font-size:.65rem;opacity:.78;letter-spacing:.09em;text-transform:uppercase;margin-top:2px;font-family:'Work Sans',sans-serif}
+
+/* tabs */
+.ptabs{display:flex;border-bottom:1px solid var(--border)}
+.ptab{flex:1;padding:7px 2px;text-align:center;font-size:.65rem;font-weight:700;cursor:pointer;color:var(--warm-grey);border-bottom:2px solid transparent;transition:all .15s;text-transform:uppercase;letter-spacing:.04em;font-family:'Work Sans',sans-serif}
+.ptab.active{color:var(--garnet);border-bottom-color:var(--garnet)}
+.ppanel{display:none;padding:11px 15px 13px;max-height:185px;overflow-y:auto}
+.ppanel.active{display:block}
+.ppanel::-webkit-scrollbar{width:3px}
+.ppanel::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.ppanel p{font-size:.78rem;color:var(--warm-grey);line-height:1.65;font-family:'Work Sans',sans-serif}
+
+.res-list{list-style:none}
+.res-list li{font-size:.76rem;color:var(--charcoal);padding:4px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:7px;line-height:1.45;font-family:'Work Sans',sans-serif}
+.res-list li:last-child{border-bottom:none}
+.res-list li::before{content:'→';color:var(--garnet);font-weight:700;flex-shrink:0;margin-top:1px}
+
+.acc-list{list-style:none}
+.acc-list li{font-size:.76rem;color:var(--charcoal);padding:3px 0;display:flex;align-items:flex-start;gap:7px;line-height:1.45;border-bottom:1px solid var(--border);font-family:'Work Sans',sans-serif}
+.acc-list li:last-child{border-bottom:none}
+.ai{flex-shrink:0;font-size:.88rem}
+
+.conn-sec{font-size:.76rem;color:var(--charcoal);line-height:1.9;font-family:'Work Sans',sans-serif}
+.ctag{display:inline-block;padding:2px 9px;border-radius:3px;font-size:.63rem;font-weight:700;letter-spacing:.04em;margin-right:5px;vertical-align:middle}
+.ctag-tunnel{background:#DBEAFE;color:#1E3A8A}
+.ctag-overpass{background:#FEF3C7;color:#78350F}
+.no-conn{font-size:.76rem;color:var(--warm-grey);font-style:italic;font-family:'Work Sans',sans-serif}
+
+.cat-pill{display:inline-block;padding:2px 10px;border-radius:3px;font-size:.65rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--white);margin-top:7px;font-family:'Work Sans',sans-serif}
+
+/* ─── MAP LEGEND ─────────────────────────────────────────────────── */
+.mleg{position:absolute;bottom:26px;right:12px;background:var(--white);border-radius:4px;padding:11px 15px;box-shadow:var(--shadow);z-index:500;font-size:.7rem;font-family:'Work Sans',sans-serif;border-top:3px solid var(--garnet)}
+.mleg h4{font-family:'Spectral',serif;font-size:.82rem;font-weight:600;margin-bottom:7px;color:var(--charcoal)}
+.lr{display:flex;align-items:center;gap:7px;margin-bottom:4px;color:var(--warm-grey);font-weight:500}
+.ldot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.lline{width:20px;height:4px;border-radius:1px;flex-shrink:0}
+
+/* ─── MARKER ─────────────────────────────────────────────────────── */
+.cm{display:flex;align-items:center;justify-content:center;border-radius:50%;border:2.5px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.28);cursor:pointer;transition:transform .15s}
+.cm:hover{transform:scale(1.18)}
+/* transit marker is a square/diamond */
+.cm-transit{border-radius:4px;transform:rotate(45deg)}
+.cm-transit:hover{transform:rotate(45deg) scale(1.18)}
+
+/* ─── DIVIDER ────────────────────────────────────────────────────── */
+.leg-div{border-top:1px solid var(--border);margin:5px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-zone">
+    <div class="logo-text">
+      <h1 id="h-title">uOttawa <em>Carte du campus</em></h1>
+      <div class="logo-sub" id="h-sub">Campus principal · Ottawa, Ontario</div>
+    </div>
+  </div>
+
+  <div class="header-controls">
+    <button class="tog" id="tog-access">♿ <span data-en="Accessibility" data-fr="Accessibilité">Accessibilité</span></button>
+    <button class="tog" id="tog-tunnels">🚇 <span data-en="Indoor Routes" data-fr="Trajets intérieurs">Trajets intérieurs</span></button>
+    <div class="sw">
+      <svg class="s-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="si" data-placeholder-en="Search buildings…" data-placeholder-fr="Chercher un bâtiment…" placeholder="Chercher un bâtiment…" autocomplete="off"/>
+      <div id="sr"></div>
+    </div>
+    <button class="lang-btn" id="lang-btn">EN</button>
+  </div>
+</header>
+
+<div class="app-body">
+<aside>
+  <div class="fh">
+    <h2 id="sb-title">Bâtiments</h2>
+    <div class="pills">
+      <div class="pill active" data-cat="all" data-en="All" data-fr="Tous">Tous</div>
+      <div class="pill" data-cat="academic"  data-en="Academic"  data-fr="Académique">Académique</div>
+      <div class="pill" data-cat="residence" data-en="Residence" data-fr="Résidence">Résidence</div>
+      <div class="pill" data-cat="sports"    data-en="Sports"    data-fr="Sports">Sports</div>
+      <div class="pill" data-cat="services"  data-en="Services"  data-fr="Services">Services</div>
+      <div class="pill" data-cat="library"   data-en="Library"   data-fr="Bibliothèque">Bibliothèque</div>
+      <div class="pill" data-cat="transit"   data-en="Transit"   data-fr="Transport">Transport</div>
+    </div>
+  </div>
+  <div class="rl">
+    <div class="rl-item"><div class="rl-swatch rl-dash" style="color:#1A4FA0;background:none"></div><span data-en="Tunnel" data-fr="Tunnel">Tunnel</span></div>
+    <div class="rl-item"><div class="rl-swatch rl-dash" style="color:#B05A00;background:none"></div><span data-en="Overpass" data-fr="Passerelle">Passerelle</span></div>
+    <div class="rl-item"><span>♿</span><span data-en="Accessible path" data-fr="Trajet accessible">Trajet accessible</span></div>
+  </div>
+  <div class="bl" id="blist"></div>
+</aside>
+
+<div style="position:relative;flex:1;overflow:hidden">
+  <div id="map"></div>
+  <div class="mleg">
+    <h4 id="leg-title">Légende</h4>
+    <div class="lr"><div class="ldot" style="background:var(--c-academic)"></div><span data-en="Academic" data-fr="Académique">Académique</span></div>
+    <div class="lr"><div class="ldot" style="background:var(--c-residence)"></div><span data-en="Residence" data-fr="Résidence">Résidence</span></div>
+    <div class="lr"><div class="ldot" style="background:var(--c-sports)"></div><span data-en="Sports" data-fr="Sports">Sports</span></div>
+    <div class="lr"><div class="ldot" style="background:var(--c-services)"></div><span data-en="Services" data-fr="Services">Services</span></div>
+    <div class="lr"><div class="ldot" style="background:var(--c-library)"></div><span data-en="Library" data-fr="Bibliothèque">Bibliothèque</span></div>
+    <div class="lr"><div class="ldot" style="background:var(--c-transit);border-radius:3px"></div><span data-en="Transit" data-fr="Transport">Transport</span></div>
+    <div class="leg-div"></div>
+    <div class="lr"><div class="lline" style="background:var(--tunnel-col);background-image:repeating-linear-gradient(90deg,var(--tunnel-col) 0,var(--tunnel-col) 5px,transparent 5px,transparent 9px)"></div><span data-en="Tunnel" data-fr="Tunnel">Tunnel</span></div>
+    <div class="lr"><div class="lline" style="background:var(--overpass-col);background-image:repeating-linear-gradient(90deg,var(--overpass-col) 0,var(--overpass-col) 5px,transparent 5px,transparent 9px)"></div><span data-en="Overpass" data-fr="Passerelle">Passerelle</span></div>
+    <div class="lr"><div class="lline" style="background:var(--access-col)"></div>♿</div>
+  </div>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// LANGUAGE
+// ═══════════════════════════════════════════════════════════
+let lang = 'fr';
+const t = (en,fr) => lang==='en' ? en : fr;
+
+function applyLang(){
+  document.getElementById('h-title').innerHTML = lang==='en'
+    ? 'uOttawa <em>Campus Map</em>'
+    : 'uOttawa <em>Carte du campus</em>';
+  document.getElementById('h-sub').textContent = lang==='en'
+    ? 'Main Campus · Ottawa, Ontario'
+    : 'Campus principal · Ottawa, Ontario';
+  document.getElementById('sb-title').textContent = lang==='en' ? 'Buildings' : 'Bâtiments';
+  document.getElementById('leg-title').textContent = lang==='en' ? 'Legend' : 'Légende';
+  document.getElementById('lang-btn').textContent = lang==='en' ? 'FR' : 'EN';
+  document.getElementById('si').placeholder = lang==='en' ? 'Search buildings…' : 'Chercher un bâtiment…';
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    if(el.tagName==='DIV'&&el.classList.contains('pill')){el.textContent=lang==='en'?el.dataset.en:el.dataset.fr;}
+    else if(el.tagName!=='BUTTON'&&el.tagName!=='DIV'){el.textContent=lang==='en'?el.dataset.en:el.dataset.fr;}
+    else{el.textContent=lang==='en'?el.dataset.en:el.dataset.fr;}
+  });
+  document.querySelectorAll('.tog span').forEach(s=>{s.textContent=lang==='en'?s.dataset.en:s.dataset.fr});
+  renderList(currentCat);
+  // refresh open popup
+  if(lastCode) markers[lastCode]&&markers[lastCode].openPopup();
+}
+
+document.getElementById('lang-btn').addEventListener('click',()=>{
+  lang = lang==='en'?'fr':'en';
+  applyLang();
+});
+
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+const catColor={
+  academic:  'var(--c-academic)',
+  residence: 'var(--c-residence)',
+  sports:    'var(--c-sports)',
+  services:  'var(--c-services)',
+  library:   'var(--c-library)',
+  transit:   'var(--c-transit)',
+};
+const catColorHex={
+  academic:'#1A4FA0',residence:'#1A6B3A',sports:'#B05A00',
+  services:'#5B2D8E',library:'#7A4000',transit:'#00607A',
+};
+
+const buildings=[
+  // ── ACADEMIC ─────────────────────────────────────────────
+  {code:'TBT',name:{en:'Tabaret Hall',fr:'Édifice Tabaret'},lat:45.4226,lng:-75.6836,cat:'academic',
+   desc:{en:'Iconic administration building and symbol of uOttawa. Originally built in 1885 — one of the first reinforced concrete buildings in Canada. The uOttawa logo was inspired by its famous columns.',
+         fr:"Bâtiment administratif emblématique de l'uOttawa. Construit en 1885, c'est l'un des premiers bâtiments en béton armé au Canada. Le logo de l'uOttawa s'inspire de ses célèbres colonnes."},
+   resources:{
+     en:['InfoService — general inquiries, admissions & registration (Room 129)','International student immigration & study permit info (virtual queue)','First-year orientation & campus tour bookings','UHIP (University Health Insurance Plan) sign-up for international students','Student card coordination & uoZone account help'],
+     fr:["InfoService — renseignements généraux, admissions et inscription (local 129)",'Information sur l\'immigration et le permis d\'études (file virtuelle)','Inscription à l\'orientation de première année et visites du campus','Inscription au RUÉÉ (Régime d\'assurance-maladie) pour les étudiants internationaux','Coordination de la carte étudiante et aide pour uoZone']},
+   access:{
+     en:['Accessible entrance with automatic door openers','Elevator access on east side','Accessible washrooms on ground floor','Para Transpo stop nearby on Cumberland St'],
+     fr:['Entrée accessible avec ouverture automatique des portes','Ascenseur côté est','Toilettes accessibles au rez-de-chaussée','Arrêt Para Transpo à proximité sur la rue Cumberland']},
+   connections:{en:['Overpass to University Centre (UCU)'],fr:['Passerelle vers le Centre universitaire (UCU)']},connTypes:['overpass']},
+
+  {code:'UCU',name:{en:'University Centre',fr:'Centre universitaire'},lat:45.4233,lng:-75.6830,cat:'services',
+   desc:{en:'Heart of student life. Houses dining, the student union, lounges, and many essential services — including International House, the go-to hub for international students.',
+         fr:"Cœur de la vie étudiante. Comprend le service de restauration, le syndicat étudiant, des salons et de nombreux services essentiels, dont la Maison internationale pour les étudiants étrangers."},
+   resources:{
+     en:['🌐 International House (iHouse) — Room 215E, community hub & cultural events for international students','UOSU Student Rights Centre — free legal & academic advocacy','UOSU Food Bank — confidential, no-questions-asked food access','Campus Pharmacy — prescriptions, bus passes, OC Transpo info','Dining hall & multiple food vendors — meal plan activation','Multi-faith prayer & reflection space','Student clubs & association offices'],
+     fr:['🌐 Maison internationale (iHouse) — local 215E, carrefour communautaire et événements culturels','Centre des droits étudiants SÉUO — aide juridique et académique gratuite','Banque alimentaire SÉUO — accès confidentiel à de la nourriture','Pharmacie campus — ordonnances, laissez-passer de bus, info OC Transpo','Cafétéria et restauration variée — activation du régime de repas','Espace de prière et réflexion multireligieux','Bureaux des clubs et associations étudiants']},
+   access:{
+     en:['Fully accessible ground floor','Elevator to all floors','Connected to Morisset Library (ground + 2nd floor) — no outdoor walking','Connected to Montpetit Hall (2nd floor, corridor 201)','Overpass to Tabaret'],
+     fr:['Rez-de-chaussée entièrement accessible','Ascenseur à tous les étages','Relié à la bibliothèque Morisset (rdc + 2e) — sans sortir','Relié à l\'édifice Montpetit (2e étage, corridor 201)','Passerelle vers Tabaret']},
+   connections:{en:['Corridor to Morisset Library (ground + 2nd)','Corridor to Montpetit (2nd floor)','Overpass to Tabaret (TBT)'],fr:['Corridor vers Morisset (rdc + 2e)','Corridor vers Montpetit (2e)','Passerelle vers Tabaret']},connTypes:['overpass','overpass','overpass']},
+
+  {code:'MRS',name:{en:'Morisset Hall (Library)',fr:'Édifice Morisset (Bibliothèque)'},lat:45.4231,lng:-75.6846,cat:'library',
+   desc:{en:"uOttawa's main library with 7 floors of study spaces, archives, and research support. Your student card unlocks borrowing, printing, and scanning.",
+         fr:"La bibliothèque principale de l'uOttawa avec 7 étages d'espaces d'étude, d'archives et de soutien à la recherche. Votre carte étudiante donne accès aux prêts, à l'impression et à la numérisation."},
+   resources:{
+     en:['Library Welcome Desk — borrowing, research questions, interlibrary loans','Research consultations with subject librarians (book online)','Quiet & group study rooms (bookable via library website)','Computer workstations, printing & scanning services','ESL and language learning resource collections','Writing Centre referrals & academic skill-building'],
+     fr:["Bureau d'accueil — prêts, questions de recherche, prêts entre bibliothèques",'Consultations avec des bibliothécaires spécialisés (réservation en ligne)','Salles d\'étude silencieuses et en groupe (réservables en ligne)','Postes informatiques, impression et numérisation','Collections de ressources pour l\'apprentissage des langues (ALS/FLS)','Références au Centre d\'écriture et développement des compétences']},
+   access:{
+     en:['Accessible entrance from University Private','Elevator to all 7 floors','Adjustable/accessible study desks','Connected to UCU (ground + 2nd floor) — fully sheltered','Connected to Thompson Residence (2nd floor)'],
+     fr:['Entrée accessible depuis University Private','Ascenseur aux 7 étages','Bureaux d\'étude réglables et accessibles','Relié au Centre universitaire (rdc + 2e) — entièrement à couvert','Relié à la résidence Thompson (2e étage)']},
+   connections:{en:['Corridor to University Centre (UCU, ground & 2nd)','Overpass to Thompson Residence (2nd floor)'],fr:['Corridor vers Centre universitaire (rdc + 2e)','Passerelle vers résidence Thompson (2e)']},connTypes:['overpass','overpass']},
+
+  {code:'DMS',name:{en:'Desmarais Hall',fr:'Édifice Desmarais'},lat:45.4237,lng:-75.6876,cat:'academic',
+   desc:{en:'Home to the Telfer School of Management. Modern bilingual building with computer labs and comprehensive student support.',
+         fr:"Siège de l'École de gestion Telfer. Bâtiment bilingue moderne avec laboratoires informatiques et soutien complet aux étudiants."},
+   resources:{
+     en:['Telfer Student Services Centre — advising & course selection','Telfer Career Centre — résumé reviews, mentorship, Career Launch portal','Telfer International Exchange Program — 60+ partner universities in 27 countries','Computer labs (DMS 2130, 2140, 2150)','MBA & graduate studies program advising'],
+     fr:["Centre des services aux étudiants Telfer — conseils et sélection de cours",'Centre carrière Telfer — révision de CV, mentorat, portail Career Launch','Programme d\'échange international Telfer — plus de 60 universités partenaires','Laboratoires informatiques (DMS 2130, 2140, 2150)','Conseils pour les programmes d\'études supérieures (MBA, MSc)']},
+   access:{en:['Accessible main entrance on Laurier East','Elevator to all floors','Accessible washrooms on each floor'],
+           fr:['Entrée principale accessible sur le boulevard Laurier Est','Ascenseur à tous les étages','Toilettes accessibles à chaque étage']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  {code:'FSS',name:{en:'Social Sciences Building',fr:'Édifice des sciences sociales'},lat:45.4222,lng:-75.6855,cat:'academic',
+   desc:{en:'Faculty of Social Sciences. Features a six-storey living green wall and 24/7 accessible study spaces.',
+         fr:"Faculté des sciences sociales. Comprend un mur végétal de six étages et des espaces d'étude accessibles 24h/24."},
+   resources:{
+     en:['Social Sciences undergraduate academic advising','Writing Centre — free academic writing support for all students','Peer tutoring for Social Sciences & Economics courses','24/7 accessible study areas & computer labs'],
+     fr:['Consultation pédagogique de premier cycle en sciences sociales','Centre d\'écriture — soutien gratuit en rédaction académique','Tutorat par les pairs pour les cours de sciences sociales et d\'économie','Espaces d\'étude et laboratoires informatiques accessibles 24h/24']},
+   access:{en:['Accessible entrance on University Private','Elevator to all floors','Para Transpo stop #7 directly in front','Connected to Vanier Hall (4th floor overpass)'],
+           fr:['Entrée accessible sur University Private','Ascenseur à tous les étages','Arrêt Para Transpo n°7 directement en face','Relié à l\'édifice Vanier (passerelle au 4e étage)']},
+   connections:{en:['Overpass to Vanier Hall (VNR, 4th floor)'],fr:['Passerelle vers l\'édifice Vanier (4e étage)']},connTypes:['overpass']},
+
+  {code:'STE',name:{en:'SITE Building',fr:'Édifice SITE'},lat:45.4227,lng:-75.6797,cat:'academic',
+   desc:{en:'School of Electrical Engineering & Computer Science (EECS). Connected to Colonel By via underground tunnel — a lifesaver in Ottawa winters.',
+         fr:"École de génie électrique et informatique (GÉNIE). Relié à l'édifice Colonel By par un tunnel souterrain — indispensable lors des hivers d'Ottawa."},
+   resources:{
+     en:['EECS Undergraduate Studies Office — program & course advising','Engineering co-op office & work-term placement support','IEEE & engineering student club offices','High-performance computing labs & maker/prototyping spaces','First-year engineering orientation & peer mentoring'],
+     fr:['Bureau des études de premier cycle en GÉNIE — conseils de programme','Bureau du régime coopératif de génie et stages','Bureaux de l\'IEEE et des clubs étudiants de génie','Laboratoires informatiques haute performance et espaces de prototypage','Orientation de première année en génie et mentorat par les pairs']},
+   access:{en:['Accessible entrance on King Edward Ave','Elevator to all floors','Underground tunnel to Colonel By (CBY) — accessible & sheltered'],
+           fr:['Entrée accessible sur l\'avenue King Edward','Ascenseur à tous les étages','Tunnel souterrain vers Colonel By (CBY) — accessible et à couvert']},
+   connections:{en:['Underground tunnel to Colonel By (CBY)','Underground tunnel to MacDonald Hall & Marion Hall'],
+                fr:['Tunnel souterrain vers Colonel By (CBY)','Tunnel souterrain vers l\'édifice MacDonald et l\'édifice Marion']},connTypes:['tunnel','tunnel']},
+
+  {code:'CBY',name:{en:'Colonel By Hall',fr:'Édifice Colonel By'},lat:45.4218,lng:-75.6817,cat:'academic',
+   desc:{en:'Engineering building with lecture halls and labs. Underground tunnel to SITE keeps you out of the cold between classes.',
+         fr:"Bâtiment d'ingénierie avec amphithéâtres et laboratoires. Le tunnel souterrain vers SITE vous protège du froid entre les cours."},
+   resources:{
+     en:['Engineering undergraduate academic advising','First-year engineering orientation','Engineering tutoring & peer-help sessions','Civil, mechanical & chemical engineering lab spaces'],
+     fr:['Conseils pédagogiques de premier cycle en génie','Orientation de première année en génie','Tutorat et séances d\'entraide en génie','Laboratoires de génie civil, mécanique et chimique']},
+   access:{en:['Accessible entrance on Colonel By Drive side','Elevator available','Underground tunnel to SITE — accessible & sheltered'],
+           fr:['Entrée accessible côté promenade Colonel-By','Ascenseur disponible','Tunnel souterrain vers SITE — accessible et à couvert']},
+   connections:{en:['Underground tunnel to SITE (STE)','Underground tunnel to MacDonald & Marion'],
+                fr:['Tunnel souterrain vers SITE','Tunnel souterrain vers MacDonald et Marion']},connTypes:['tunnel','tunnel']},
+
+  {code:'LMX',name:{en:'Lamoureux Hall',fr:'Édifice Lamoureux'},lat:45.4238,lng:-75.6845,cat:'academic',
+   desc:{en:'Faculty of Education and Arts. Connected to Montpetit via 2nd–4th floor corridors and to UCU via the Jock Turcot overpass.',
+         fr:"Faculté d'éducation et arts. Relié à Montpetit via des corridors des 2e–4e étages et au Centre universitaire via la passerelle Jock Turcot."},
+   resources:{
+     en:['Faculty of Education undergraduate & graduate advising','Teacher certification & licensing guidance for international graduates','Modern Languages & linguistics course support','Second Language Institute (FSL & ESL courses)'],
+     fr:['Conseils de premier et deuxième cycles en éducation','Orientation sur la certification et l\'accréditation d\'enseignant pour les diplômés étrangers','Soutien pour les cours de langues modernes et de linguistique','Institut des langues secondes (cours de FLS et d\'ALS)']},
+   access:{en:['Accessible ramp on south side','Elevator to all floors','Connected to Montpetit (floors 2, 3 & 4)'],
+           fr:['Rampe accessible côté sud','Ascenseur à tous les étages','Relié à Montpetit (2e, 3e et 4e étages)']},
+   connections:{en:['Overpass to Montpetit (MNT) — floors 2, 3 & 4','Overpass to UCU (Jock Turcot, 2nd floor)'],
+                fr:['Passerelle vers Montpetit (2e, 3e, 4e)','Passerelle vers Centre universitaire (Jock Turcot, 2e)']},connTypes:['overpass','overpass']},
+
+  {code:'MNT',name:{en:'Montpetit Hall',fr:'Édifice Montpetit'},lat:45.4217,lng:-75.6855,cat:'academic',
+   desc:{en:'Faculty of Health Sciences & School of Human Kinetics. Houses a gymnasium and Olympic pool with full accessibility equipment.',
+         fr:"Faculté des sciences de la santé et École des sciences de l'activité physique. Comprend un gymnase et une piscine olympique avec équipement d'accessibilité complet."},
+   resources:{
+     en:['Faculty of Health Sciences undergraduate advising','Mentoring Centre — peer mentorship for first-year students','Kinesiology & Human Kinetics wellness programs','Health Sciences scholarships & bursaries'],
+     fr:['Conseils de premier cycle en sciences de la santé','Centre de mentorat — mentorat par les pairs pour les étudiants de 1re année','Programmes de bien-être en kinésiologie et sciences de l\'activité physique','Bourses d\'études et d\'aide financière en sciences de la santé']},
+   access:{en:['Accessible entrance — ramp on south side','Elevator to all floors','Pool accessibility lift & water wheelchair (ext. 4477)','4 accessible parking spaces (University Private, south side)','Connected to Lamoureux (floors 2–4) & UCU (2nd floor)'],
+           fr:['Entrée accessible — rampe côté sud','Ascenseur à tous les étages','Lève-personne pour piscine et fauteuil aquatique (poste 4477)','4 places de stationnement accessibles (University Private, côté sud)','Relié à Lamoureux (2e–4e) et au Centre universitaire (2e)']},
+   connections:{en:['Corridors to Lamoureux (LMX, floors 2–4)','Corridor to UCU (2nd floor, corridor 201)'],
+                fr:['Corridors vers Lamoureux (2e–4e)','Corridor vers Centre universitaire (2e, corridor 201)']},connTypes:['overpass','overpass']},
+
+  {code:'FTX',name:{en:'Fauteux Hall',fr:'Édifice Fauteux'},lat:45.4231,lng:-75.6865,cat:'academic',
+   desc:{en:'Home of the Faculty of Law (Common Law). Connected to two residences — law students rarely need to go outside.',
+         fr:"Siège de la Faculté de droit (Section de common law). Relié à deux résidences — les étudiants en droit sortent rarement."},
+   resources:{
+     en:['Common Law Student Services — admissions, advising & exams','Pro Bono Students Canada — free legal aid clinics','Law library & Westlaw/LexisNexis research tools','Moot court facilities & legal skills training','Indigenous law & legal aid referrals'],
+     fr:['Services aux étudiants en common law — admissions, conseils et examens','Pro Bono Étudiants Canada — cliniques d\'aide juridique gratuites','Bibliothèque de droit et outils de recherche Westlaw/LexisNexis','Salles de plaidoirie et formation aux compétences juridiques','Références en droit autochtone et aide juridique']},
+   access:{en:['Accessible entrance available','Elevator to all floors','Para Transpo stop #9 on Louis-Pasteur Private','3 accessible parking spaces (Louis-Pasteur Private, west side)','Connected to Leblanc & Brooks residences'],
+           fr:['Entrée accessible disponible','Ascenseur à tous les étages','Arrêt Para Transpo n°9 sur Louis-Pasteur Private','3 places accessibles (Louis-Pasteur Private, côté ouest)','Relié aux résidences Leblanc et Brooks']},
+   connections:{en:['Connected to Leblanc Residence (LBL)','Connected to Brooks Residence (BRS)','Connected to Thompson Residence (2nd floor)'],
+                fr:['Relié à la résidence Leblanc','Relié à la résidence Brooks','Relié à la résidence Thompson (2e)']},connTypes:['overpass','overpass','overpass']},
+
+  {code:'SMD',name:{en:'Simard Hall',fr:'Édifice Simard'},lat:45.4243,lng:-75.6860,cat:'academic',
+   desc:{en:'Houses the Official Languages and Bilingualism Institute (OLBI). ESL 0140 has been shown to increase international student graduation rates by 12%.',
+         fr:"Siège de l'Institut des langues officielles et du bilinguisme (ILOB). Le cours ALS 0140 a démontré une hausse de 12 % du taux de diplômation des étudiants internationaux."},
+   resources:{
+     en:['OLBI French as a Second Language (FSL) courses & immersion','ESL 0140 English course — increases international student graduation rates by 12%','Bilingual academic support & language tutoring','Language exchange partner programs','Francophone student association events'],
+     fr:['Cours de français langue seconde (FLS) et immersion de l\'ILOB','Cours d\'anglais ALS 0140 — augmente le taux de diplomation des étudiants internationaux de 12 %','Soutien académique bilingue et tutorat en langues','Programmes de jumelage linguistique','Événements de l\'association étudiante francophone']},
+   access:{en:['Accessible entrance','Elevator access','Accessible washrooms on multiple floors'],
+           fr:['Entrée accessible','Accès par ascenseur','Toilettes accessibles à plusieurs étages']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  {code:'HAM',name:{en:'Hamelin Hall',fr:'Édifice Hamelin'},lat:45.4260,lng:-75.6860,cat:'academic',
+   desc:{en:'School of Translation and Interpretation. Ideal for bilingual and multilingual students building professional language skills.',
+         fr:"École de traduction et d'interprétation. Idéal pour les étudiants bilingues et multilingues souhaitant développer des compétences linguistiques professionnelles."},
+   resources:{
+     en:['Translation and Interpretation advising','Applied linguistics & language studies programs','Language lab with audio/recording resources','Cross-cultural communication workshops'],
+     fr:['Conseils en traduction et interprétation','Programmes de linguistique appliquée','Laboratoire de langues avec ressources audio et d\'enregistrement','Ateliers de communication interculturelle']},
+   access:{en:['Accessible entrance','Elevator available','Accessible washrooms'],
+           fr:['Entrée accessible','Ascenseur disponible','Toilettes accessibles']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  {code:'VNR',name:{en:'Vanier Hall',fr:'Édifice Vanier'},lat:45.4256,lng:-75.6845,cat:'academic',
+   desc:{en:'Humanities and Social Sciences. Connected to FSS via a 4th-floor overpass — a warm indoor shortcut.',
+         fr:"Sciences humaines et sociales. Relié à l'édifice des sciences sociales par une passerelle au 4e étage — un raccourci intérieur bien chauffé."},
+   resources:{
+     en:['Humanities undergraduate advising offices','Undergraduate research opportunities board','Student association spaces for arts faculties','Graduate studies information for humanities'],
+     fr:['Bureaux de conseils de premier cycle en sciences humaines','Tableau d\'offres de recherche de premier cycle','Espaces pour les associations étudiantes des facultés des arts','Information sur les études supérieures en sciences humaines']},
+   access:{en:['Accessible entrance','Elevator to all floors','Connected to FSS (4th floor overpass)'],
+           fr:['Entrée accessible','Ascenseur à tous les étages','Relié à l\'édifice des sciences sociales (passerelle au 4e)']},
+   connections:{en:['Overpass to FSS (4th floor)'],fr:['Passerelle vers l\'édifice des sciences sociales (4e)']},connTypes:['overpass']},
+
+  {code:'ARC',name:{en:'Advanced Research Complex',fr:'Complexe de recherche avancée'},lat:45.4201,lng:-75.6808,cat:'academic',
+   desc:{en:'State-of-the-art facility for chemistry, physics, and photonics. Fully AODA-compliant modern building.',
+         fr:"Installation de pointe pour la chimie, la physique et la photonique. Bâtiment moderne entièrement conforme à la LAPH."},
+   resources:{
+     en:['Natural Sciences graduate research labs','Undergraduate research assistant opportunities (NSERC-USRA)','STEM networking & symposium events','Photonics & nanotechnology research centre'],
+     fr:['Laboratoires de recherche aux cycles supérieurs en sciences naturelles','Possibilités d\'assistanat de recherche de premier cycle (BESC-BRPC)','Événements de réseautage et symposiums en STIM','Centre de recherche en photonique et nanotechnologie']},
+   access:{en:['Accessible entrance','Elevator to all floors','Full AODA-compliant modern building','Accessible washrooms on all floors'],
+           fr:['Entrée accessible','Ascenseur à tous les étages','Bâtiment moderne entièrement conforme à la LAPH','Toilettes accessibles à tous les étages']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  {code:'SCI',name:{en:"D'Iorio Hall",fr:"Édifice D'Iorio"},lat:45.4209,lng:-75.6835,cat:'academic',
+   desc:{en:'Chemistry and Biochemistry teaching and research labs. First-year science students spend significant time here.',
+         fr:"Laboratoires d'enseignement et de recherche en chimie et biochimie. Les étudiants de première année en sciences y passent beaucoup de temps."},
+   resources:{
+     en:['Chemistry & Biochemistry undergraduate advising','Lab safety orientation for first-year students','Undergraduate research scholarships (NSERC-USRA)','Chemistry peer tutoring & office hours'],
+     fr:['Conseils de premier cycle en chimie et biochimie','Orientation sur la sécurité en laboratoire pour les étudiants de 1re année','Bourses de recherche de premier cycle (BESC-BRPC)','Tutorat par les pairs en chimie et heures de consultation']},
+   access:{en:['Accessible entrance','Elevator access','Accessible washrooms'],
+           fr:['Entrée accessible','Accès par ascenseur','Toilettes accessibles']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  {code:'100L',name:{en:'100 Laurier (Admin Hub)',fr:'100, avenue Laurier (Administration)'},lat:45.4245,lng:-75.6870,cat:'services',
+   desc:{en:'Key administrative hub: Registrar, academic success, financial aid, and disability accommodations — all in one place.',
+         fr:"Carrefour administratif clé : Bureau du registraire, réussite académique, aide financière et accommodements pour les personnes handicapées — tout au même endroit."},
+   resources:{
+     en:["Registrar's Office — transcripts, enrolment & course changes",'Student Academic Success Service (SASS) — tutoring, study skills & coaching','Financial aid, bursary & emergency funding applications','Academic Accommodations Service — disability support','uOttawa Ombudsman — confidential, independent student advocacy','International student study permit & UHIP guidance'],
+     fr:['Bureau du registraire — relevés de notes, inscription et modifications de cours','Service de réussite académique des étudiants (SRAE) — tutorat, méthodes d\'étude et accompagnement','Demandes d\'aide financière, de bourses et de financement d\'urgence','Service des accommodements académiques — soutien pour les personnes handicapées','Ombudsman de l\'uOttawa — défense confidentielle et indépendante des étudiants','Orientation sur le permis d\'études et le RUÉÉ pour les étudiants internationaux']},
+   access:{en:['Accessible entrance on Laurier Ave','Elevator to all floors','Accessible washrooms on each floor','Virtual queue for all services — join from anywhere'],
+           fr:['Entrée accessible sur l\'avenue Laurier','Ascenseur à tous les étages','Toilettes accessibles à chaque étage','File virtuelle pour tous les services — rejoignez-la depuis n\'importe où']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  {code:'PEZ',name:{en:'Perez Hall',fr:'Édifice Perez'},lat:45.4203,lng:-75.6820,cat:'services',
+   desc:{en:'Student support and wellness services near the southern campus. Connected to Leblanc Residence.',
+         fr:"Services de soutien et de bien-être pour les étudiants, situés au sud du campus. Relié à la résidence Leblanc."},
+   resources:{
+     en:['Peer Support Centre — free, confidential emotional support','Sexual Violence Support Services','Student wellness & counselling referrals','Off-campus housing resource office'],
+     fr:['Centre de soutien par les pairs — soutien émotionnel confidentiel et gratuit','Services d\'aide aux victimes de violence sexuelle','Références en bien-être étudiant et counseling','Bureau des ressources pour le logement hors campus']},
+   access:{en:['Accessible entrance','Elevator available','Accessible washrooms','Connected to Leblanc Residence (LBL)'],
+           fr:['Entrée accessible','Ascenseur disponible','Toilettes accessibles','Relié à la résidence Leblanc']},
+   connections:{en:['Connected to Leblanc Residence (LBL)'],fr:['Relié à la résidence Leblanc']},connTypes:['overpass']},
+
+  // ── SPORTS ────────────────────────────────────────────────
+  {code:'MNT2',name:{en:'Minto Sports Complex',fr:'Complexe sportif Minto'},lat:45.4225,lng:-75.6783,cat:'sports',
+   desc:{en:"uOttawa's main athletics facility. Your student card is your gym membership. The Olympic pool also hosts Dive-In movie screenings — one of campus's most popular free events.",
+         fr:"Principale installation sportive de l'uOttawa. Votre carte étudiante est votre abonnement au gym. La piscine olympique accueille également des projections cinéma dans l'eau (Dive-In) — l'un des événements gratuits les plus populaires du campus."},
+   resources:{
+     en:['Gym membership included with student card — just activate it','Intramural sports registration — great for meeting new people','Olympic pool with accessibility lift & water wheelchair','Varsity sport tryouts & recreational fitness programs','Dive-In movie screenings — free student events','Sports medicine & physiotherapy clinic'],
+     fr:['Abonnement au gym inclus avec la carte étudiante — à activer','Inscription aux sports intramuros — idéal pour rencontrer des gens','Piscine olympique avec lève-personne et fauteuil aquatique','Sélections pour équipes de compétition et programmes récréatifs','Projections Dive-In — événements étudiants gratuits','Clinique de médecine sportive et de physiothérapie']},
+   access:{en:['Accessible entrance from King Edward Ave','Elevator to all levels','Pool accessibility lift & water wheelchair (ext. 4477)','Accessible changing rooms & washrooms'],
+           fr:['Entrée accessible depuis l\'avenue King Edward','Ascenseur à tous les niveaux','Lève-personne et fauteuil aquatique pour la piscine (poste 4477)','Vestiaires et toilettes accessibles']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  // ── RESIDENCES ────────────────────────────────────────────
+  {code:'BRS',name:{en:'Brooks Residence',fr:'Résidence Brooks'},lat:45.4215,lng:-75.6825,cat:'residence',
+   desc:{en:"First-year residence close to academic buildings. uOttawa guarantees a spot for all incoming first-year students.",
+         fr:"Résidence de première année près des bâtiments académiques. L'uOttawa garantit une place à tous les étudiants de première année."},
+   resources:{
+     en:['First-year housing guarantee — all first-years get a space','Residence dons & peer mentorship programs','Connected to Fauteux Hall — avoid cold commutes','Meal plan activation & dining hall access','Student card pick-up on arrival'],
+     fr:['Garantie de logement en résidence pour tous les étudiants de 1re année','Tuteurs de résidence et programmes de mentorat','Relié à l\'édifice Fauteux — évitez le froid lors des déplacements','Activation du régime de repas et accès à la cafétéria','Récupération de la carte étudiante à l\'arrivée']},
+   access:{en:['Accessible entrance','Elevator available','Special accommodation request via residence application','4 accessible parking spaces in Brooks Garage (100 Thomas-Moore)','Connected to Fauteux Hall (sheltered)'],
+           fr:['Entrée accessible','Ascenseur disponible','Demande d\'accommodement spécial via le formulaire de résidence','4 places de stationnement accessibles au garage Brooks (100, rue Thomas-Moore)','Relié à l\'édifice Fauteux (à couvert)']},
+   connections:{en:['Connected to Fauteux Hall (FTX)'],fr:['Relié à l\'édifice Fauteux']},connTypes:['overpass']},
+
+  {code:'STN',name:{en:'Stanton Residence',fr:'Résidence Stanton'},lat:45.4258,lng:-75.6834,cat:'residence',
+   desc:{en:'Suite-style living for upper-year students with private bathrooms and kitchenette — ideal for longer-term international students.',
+         fr:"Logement en suite pour les étudiants des années supérieures avec salle de bain privée et kitchenette — idéal pour les étudiants internationaux en séjour prolongé."},
+   resources:{
+     en:['Suite rooms with kitchenette — cook your own meals','Upper-year student community & social events','Residence life programming','Off-campus housing office referrals'],
+     fr:['Chambres en suite avec kitchenette — préparez vos propres repas','Communauté d\'étudiants des années supérieures et événements sociaux','Programmation de vie en résidence','Références au bureau de logement hors campus']},
+   access:{en:['Accessible entrance','Elevator to all floors','Special accommodation form on application'],
+           fr:['Entrée accessible','Ascenseur à tous les étages','Formulaire d\'accommodement spécial dans la demande de résidence']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  {code:'HYS',name:{en:'Hyman Soloway Residence',fr:'Résidence Hyman Soloway'},lat:45.4244,lng:-75.6810,cat:'residence',
+   desc:{en:'Modern high-rise apartment-style residence — popular with upper-year and graduate students. Best for longer-term international students wanting independence.',
+         fr:"Résidence moderne en appartement en hauteur, prisée des étudiants avancés et des étudiants aux cycles supérieurs. Idéale pour les étudiants internationaux en séjour prolongé souhaitant plus d'autonomie."},
+   resources:{
+     en:['Apartment units with in-unit kitchens — cook familiar food from home','Quiet study floors available on request','Close to SITE & engineering buildings','Laundry & high-speed WiFi included'],
+     fr:['Appartements avec cuisine — préparez les plats de chez vous','Étages d\'étude calmes disponibles sur demande','Proche des édifices SITE et de génie','Buanderie et WiFi haute vitesse inclus']},
+   access:{en:['Full elevator access throughout','Accessible units via special accommodation form','Accessible parking nearby'],
+           fr:['Ascenseur complet dans tout l\'immeuble','Unités accessibles via le formulaire d\'accommodement spécial','Stationnement accessible à proximité']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  {code:'LBL',name:{en:'Leblanc Residence',fr:'Résidence Leblanc'},lat:45.4262,lng:-75.6820,cat:'residence',
+   desc:{en:'Residence near the northern campus. Connected to Fauteux Hall and Perez Hall — ideal for staying warm and safe in winter.',
+         fr:"Résidence au nord du campus. Reliée à l'édifice Fauteux et à l'édifice Perez — idéal pour rester au chaud et en sécurité en hiver."},
+   resources:{
+     en:['Indoor connected access to Fauteux & Perez — no need to go outside','Residence life programming & community events','Meal plan options & dining access','Peer mentoring by residence dons'],
+     fr:['Accès intérieur à Fauteux et Perez — sans sortir','Programmation de vie en résidence et événements communautaires','Options de régime de repas et accès à la cafétéria','Mentorat par les pairs par les tuteurs de résidence']},
+   access:{en:['Accessible entrance','Elevator access','Connected to Fauteux (sheltered)','Connected to Perez Hall (PEZ)'],
+           fr:['Entrée accessible','Accès par ascenseur','Relié à Fauteux (à couvert)','Relié à l\'édifice Perez']},
+   connections:{en:['Connected to Fauteux Hall (FTX)','Connected to Perez Hall (PEZ)'],
+                fr:['Relié à l\'édifice Fauteux','Relié à l\'édifice Perez']},connTypes:['overpass','overpass']},
+
+  {code:'THN',name:{en:'Thompson Residence',fr:'Résidence Thompson'},lat:45.4270,lng:-75.6830,cat:'residence',
+   desc:{en:'Residence with cafeteria-style meal plans. Connected to Morisset Library — study without stepping outside.',
+         fr:"Résidence avec régime de repas à la cafétéria. Reliée directement à la bibliothèque Morisset — étudiez sans sortir dehors."},
+   resources:{
+     en:['Cafeteria meal plan — 5-day (~$6,550) or 7-day (~$7,225) for 8 months','Connected directly to Morisset Library (2nd floor)','First-year community & peer mentorship','Laundry facilities & high-speed WiFi'],
+     fr:['Régime de repas cafétéria — 5 jours (~6 550 $) ou 7 jours (~7 225 $) pour 8 mois','Relié directement à la bibliothèque Morisset (2e étage)','Communauté de 1re année et mentorat par les pairs','Buanderie et WiFi haute vitesse']},
+   access:{en:['Accessible entrance','Elevator to all floors','Connected to Morisset Library (2nd floor) — sheltered','Connected to Fauteux Hall (2nd floor)'],
+           fr:['Entrée accessible','Ascenseur à tous les étages','Relié à la bibliothèque Morisset (2e) — à couvert','Relié à l\'édifice Fauteux (2e)']},
+   connections:{en:['Connected to Morisset Library (MRS, 2nd floor)','Connected to Fauteux Hall (FTX, 2nd floor)'],
+                fr:['Relié à la bibliothèque Morisset (2e)','Relié à l\'édifice Fauteux (2e)']},connTypes:['overpass','overpass']},
+
+  // ── TRANSIT ──────────────────────────────────────────────
+  {code:'LRTO',name:{en:'uOttawa O-Train Station (Line 1)',fr:'Station O-Train uOttawa (Ligne 1)'},lat:45.4224,lng:-75.6771,cat:'transit',
+   desc:{en:"The main LRT station serving campus. O-Train Line 1 (Confederation Line) runs east–west through downtown Ottawa. Free to use with your U-Pass — included with full-time enrollment.",
+         fr:"La principale station de train léger desservant le campus. La ligne 1 du O-Train (ligne de la Confédération) traverse Ottawa d'est en ouest. Gratuit avec votre Ulaissez-passer — inclus avec l'inscription à temps plein."},
+   resources:{
+     en:['O-Train Line 1 (Confederation Line) — east/west through downtown','Free with U-Pass (included for full-time students)','Accessible platform with elevators & tactile paths','Real-time departures on OC Transpo app','Connection to all OC Transpo bus routes at major transfer points'],
+     fr:['O-Train Ligne 1 (ligne de la Confédération) — est/ouest dans le centre-ville','Gratuit avec l\'Ulaissez-passer (inclus pour les étudiants à temps plein)','Quai accessible avec ascenseurs et voies tactiles','Départs en temps réel sur l\'application OC Transpo','Correspondances avec toutes les lignes d\'autobus OC Transpo aux points de transfert principaux']},
+   access:{en:['Elevator access to platform','Tactile ground paths for visually impaired','Level boarding — no steps between platform and train','Accessible fare gates'],
+           fr:['Accès par ascenseur au quai','Voies tactiles au sol pour les personnes malvoyantes','Embarquement de plain-pied — aucune marche entre le quai et le train','Tourniquets accessibles']},
+   connections:{en:['8-min walk to UCU','Connected to OC Transpo bus network'],fr:['8 min à pied du Centre universitaire','Correspondances avec le réseau d\'autobus OC Transpo']},connTypes:[]},
+
+  {code:'BS1',name:{en:'Bus Stop — Laurier E / Cumberland',fr:'Arrêt d\'autobus — Laurier E / Cumberland'},lat:45.4241,lng:-75.6832,cat:'transit',
+   desc:{en:'Closest bus stop to Tabaret Hall and the heart of campus. Buses 10, 12, 19, 33 serve this stop.',
+         fr:"L'arrêt d'autobus le plus proche de l'édifice Tabaret et du cœur du campus. Les autobus 10, 12, 19 et 33 desservent cet arrêt."},
+   resources:{
+     en:['Routes: 10, 12, 19, 33 — connections to downtown, Rideau Centre, Gatineau (STO)','2-min walk to Tabaret Hall & UCU','U-Pass valid — just tap your student card','Real-time arrivals: octranspo.com or OC Transpo app'],
+     fr:['Lignes : 10, 12, 19, 33 — correspondances vers le centre-ville, le Centre Rideau, Gatineau (STO)','À 2 min à pied de l\'édifice Tabaret et du Centre universitaire','Ulaissez-passer valide — utilisez simplement votre carte étudiante','Arrivées en temps réel : octranspo.com ou application OC Transpo']},
+   access:{en:['Accessible bus stop pad','Low-floor accessible buses on all routes','Para Transpo pre-booking available (48h in advance)'],
+           fr:['Quai d\'arrêt accessible','Autobus à plancher surbaissé sur toutes les lignes','Para Transpo disponible sur préavis (48h à l\'avance)']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  {code:'BS2',name:{en:'Bus Stop — King Edward / Templeton',fr:'Arrêt d\'autobus — King Edward / Templeton'},lat:45.4220,lng:-75.6778,cat:'transit',
+   desc:{en:'Bus stop serving the eastern side of campus near SITE and Minto Sports Complex. Routes 86 and local buses stop here.',
+         fr:"Arrêt d'autobus desservant le côté est du campus près de l'édifice SITE et du complexe sportif Minto."},
+   resources:{
+     en:['Routes: 86, local connectors — links to O-Train uOttawa station','3-min walk to SITE Building & Minto Sports Complex','U-Pass valid','Real-time arrivals: OC Transpo app'],
+     fr:['Lignes : 86 et navettes locales — liens vers la station O-Train uOttawa','À 3 min à pied de l\'édifice SITE et du complexe Minto','Ulaissez-passer valide','Arrivées en temps réel : application OC Transpo']},
+   access:{en:['Accessible bus stop pad','Low-floor buses'],fr:['Quai accessible','Autobus à plancher surbaissé']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  {code:'BS3',name:{en:'Bus Stop — Somerset E / King Edward',fr:'Arrêt d\'autobus — Somerset E / King Edward'},lat:45.4257,lng:-75.6775,cat:'transit',
+   desc:{en:'Northern campus bus stop convenient for residences and Hyman Soloway. Multiple routes serve this stop.',
+         fr:"Arrêt d'autobus au nord du campus, pratique pour les résidences et la résidence Hyman Soloway."},
+   resources:{
+     en:['Routes: 10, 56 — downtown & Sandy Hill connections','5-min walk to Hyman Soloway Residence & northern residences','U-Pass valid'],
+     fr:['Lignes : 10, 56 — correspondances vers le centre-ville et Sandy Hill','À 5 min à pied de la résidence Hyman Soloway et des résidences nord','Ulaissez-passer valide']},
+   access:{en:['Accessible bus stop','Low-floor buses'],fr:['Arrêt accessible','Autobus à plancher surbaissé']},
+   connections:{en:[],fr:[]},connTypes:[]},
+
+  {code:'SHUT',name:{en:'uOttawa Shuttle Stop (Main Campus)',fr:'Arrêt de navette uOttawa (campus principal)'},lat:45.4232,lng:-75.6853,cat:'transit',
+   desc:{en:'Free shuttle service connecting the main campus to 200 Lees Ave and the Roger Guindon Health Sciences campus. Track in real-time with the BusWhere app.',
+         fr:"Service de navette gratuit reliant le campus principal au 200, avenue Lees et au campus des sciences de la santé Roger-Guindon. Suivez-la en temps réel avec l'application BusWhere."},
+   resources:{
+     en:['Free for all uOttawa students, staff & faculty (no U-Pass required)','Connects to: 200 Lees Ave campus & Roger Guindon Health Sciences campus','Real-time tracking: buswhere.com/uottawa or BusWhere iOS/Android app','Schedule: Regular service during fall/winter terms; full service summer 2024','Contact: 613-562-5800 ext. 6523'],
+     fr:['Gratuit pour tous les étudiants, employés et professeurs de l\'uOttawa (sans Ulaissez-passer)','Desserte : campus du 200, avenue Lees et campus des sciences de la santé Roger-Guindon','Suivi en temps réel : buswhere.com/uottawa ou application BusWhere (iOS/Android)','Horaire : Service régulier en automne/hiver; service complet en été 2024','Contact : 613-562-5800 poste 6523']},
+   access:{en:['Accessible shuttle vehicles available','Contact the Sustainable Transportation Office to request accessible seating','Para Transpo alternative available for those unable to use the shuttle'],
+           fr:['Véhicules de navette accessibles disponibles','Contactez le Bureau du transport durable pour demander des places accessibles','Para Transpo disponible pour ceux ne pouvant pas utiliser la navette']},
+   connections:{en:[],fr:[]},connTypes:[]},
+];
+
+// ═══════════════════════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════════════════════
+const map=L.map('map',{center:[45.4235,-75.6830],zoom:16,zoomControl:false});
+L.control.zoom({position:'bottomleft'}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19
+}).addTo(map);
+
+// ═══════════════════════════════════════════════════════════
+// ROUTES
+// ═══════════════════════════════════════════════════════════
+const tunnelRoutes=[
+  {coords:[[45.4227,-75.6797],[45.4218,-75.6817],[45.4225,-75.6826],[45.4250,-75.6843]],
+   label:{en:'🚇 Underground Tunnel: SITE → CBY → Marion',fr:'🚇 Tunnel souterrain : SITE → CBY → Marion'}},
+];
+const overpassRoutes=[
+  {coords:[[45.4233,-75.6830],[45.4231,-75.6846]],label:{en:'🌉 UCU ↔ Morisset Library',fr:'🌉 Centre universitaire ↔ Bibliothèque Morisset'}},
+  {coords:[[45.4233,-75.6830],[45.4217,-75.6855]],label:{en:'🌉 UCU ↔ Montpetit (2nd floor)',fr:'🌉 Centre universitaire ↔ Montpetit (2e)'}},
+  {coords:[[45.4233,-75.6830],[45.4226,-75.6836]],label:{en:'🌉 UCU ↔ Tabaret',fr:'🌉 Centre universitaire ↔ Tabaret'}},
+  {coords:[[45.4231,-75.6865],[45.4262,-75.6820]],label:{en:'🌉 Fauteux ↔ Leblanc',fr:'🌉 Fauteux ↔ Leblanc'}},
+  {coords:[[45.4231,-75.6865],[45.4215,-75.6825]],label:{en:'🌉 Fauteux ↔ Brooks',fr:'🌉 Fauteux ↔ Brooks'}},
+  {coords:[[45.4231,-75.6865],[45.4270,-75.6830]],label:{en:'🌉 Fauteux ↔ Thompson (2nd floor)',fr:'🌉 Fauteux ↔ Thompson (2e)'}},
+  {coords:[[45.4270,-75.6830],[45.4231,-75.6846]],label:{en:'🌉 Thompson ↔ Morisset (2nd floor)',fr:'🌉 Thompson ↔ Morisset (2e)'}},
+  {coords:[[45.4238,-75.6845],[45.4217,-75.6855]],label:{en:'🌉 Lamoureux ↔ Montpetit (floors 2–4)',fr:'🌉 Lamoureux ↔ Montpetit (2e–4e)'}},
+  {coords:[[45.4256,-75.6845],[45.4222,-75.6855]],label:{en:'🌉 Vanier ↔ FSS (4th floor)',fr:'🌉 Vanier ↔ Sciences sociales (4e)'}},
+  {coords:[[45.4203,-75.6820],[45.4262,-75.6820]],label:{en:'🌉 Perez ↔ Leblanc',fr:'🌉 Perez ↔ Leblanc'}},
+];
+const accessPaths=[
+  {coords:[[45.4226,-75.6836],[45.4231,-75.6846]],label:{en:'♿ Accessible: Tabaret → Morisset',fr:'♿ Accessible : Tabaret → Morisset'}},
+  {coords:[[45.4217,-75.6855],[45.4233,-75.6830]],label:{en:'♿ Accessible: Montpetit → UCU',fr:'♿ Accessible : Montpetit → Centre universitaire'}},
+  {coords:[[45.4231,-75.6865],[45.4222,-75.6855]],label:{en:'♿ Accessible: Fauteux → FSS area',fr:'♿ Accessible : Fauteux → Édifice des sciences sociales'}},
+  {coords:[[45.4225,-75.6783],[45.4233,-75.6830]],label:{en:'♿ Accessible: Minto → UCU path',fr:'♿ Accessible : Minto → Centre universitaire'}},
+];
+
+const tunnelLayers=[],overpassLayers=[],accessLayers=[];
+tunnelRoutes.forEach(r=>{tunnelLayers.push(L.polyline(r.coords,{color:'#1A4FA0',weight:5,opacity:.85,dashArray:'10,6'}).bindTooltip(()=>r.label[lang],{sticky:true}))});
+overpassRoutes.forEach(r=>{overpassLayers.push(L.polyline(r.coords,{color:'#B05A00',weight:4,opacity:.82,dashArray:'8,5'}).bindTooltip(()=>r.label[lang],{sticky:true}))});
+accessPaths.forEach(r=>{accessLayers.push(L.polyline(r.coords,{color:'#1A6B3A',weight:5,opacity:.9}).bindTooltip(()=>r.label[lang],{sticky:true}))});
+
+let tunnelsOn=false,accessOn=false;
+function toggleLayers(layers,on){layers.forEach(l=>on?l.addTo(map):map.removeLayer(l))}
+document.getElementById('tog-tunnels').addEventListener('click',function(){
+  tunnelsOn=!tunnelsOn;toggleLayers(tunnelLayers,tunnelsOn);toggleLayers(overpassLayers,tunnelsOn);
+  this.classList.toggle('on',tunnelsOn);
+});
+document.getElementById('tog-access').addEventListener('click',function(){
+  accessOn=!accessOn;toggleLayers(accessLayers,accessOn);
+  this.classList.toggle('on',accessOn);
+});
+
+// ═══════════════════════════════════════════════════════════
+// MARKERS + POPUPS
+// ═══════════════════════════════════════════════════════════
+const markers={};let activeEl=null,currentCat='all',lastCode=null;
+
+function makeIcon(cat){
+  const c=catColorHex[cat];
+  const isTransit=cat==='transit';
+  if(isTransit){
+    return L.divIcon({className:'',
+      html:`<div class="cm cm-transit" style="width:26px;height:26px;background:${c}"></div>`,
+      iconSize:[26,26],iconAnchor:[13,13],popupAnchor:[0,-17]});
+  }
+  return L.divIcon({className:'',
+    html:`<div class="cm" style="width:28px;height:28px;background:${c}"></div>`,
+    iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-17]});
+}
+
+function buildPopup(b){
+  const col=catColorHex[b.cat];
+  const name=b.name[lang];
+  const desc=b.desc[lang];
+  const resList=(b.resources[lang]||[]).map(r=>`<li>${r}</li>`).join('');
+  const accList=(b.access[lang]||[]).map(a=>`<li><span class="ai">♿</span>${a}</li>`).join('');
+  const connHTML=b.connections[lang]&&b.connections[lang].length
+    ?b.connections[lang].map((c,i)=>`<div style="margin-bottom:4px"><span class="ctag ctag-${b.connTypes[i]}">${b.connTypes[i]==='tunnel'?(lang==='en'?'🚇 Tunnel':'🚇 Tunnel'):(lang==='en'?'🌉 Overpass':'🌉 Passerelle')}</span>${c}</div>`).join('')
+    :`<div class="no-conn">${lang==='en'?'No indoor connections — outdoor walking required':'Aucune connexion intérieure — marche à l\'extérieur requise'}</div>`;
+  const tabs=[
+    {id:'about',  en:'About',    fr:'À propos'},
+    {id:'resources',en:'Resources',fr:'Ressources'},
+    {id:'access', en:'Access ♿', fr:'Accès ♿'},
+    {id:'routes', en:'Routes',   fr:'Trajets'},
+  ];
+  const tabHTML=tabs.map((t,i)=>`<div class="ptab${i===0?' active':''}" data-tab="${t.id}">${t[lang]}</div>`).join('');
+  return `<div>
+    <div class="ph" style="background:${col}">
+      <h3>${name}</h3>
+      <div class="ph-code">${b.code}</div>
+    </div>
+    <div class="ptabs">${tabHTML}</div>
+    <div class="ppanel active" data-panel="about"><p>${desc}</p><span class="cat-pill" style="background:${col}">${b.cat}</span></div>
+    <div class="ppanel" data-panel="resources"><ul class="res-list">${resList}</ul></div>
+    <div class="ppanel" data-panel="access"><ul class="acc-list">${accList}</ul></div>
+    <div class="ppanel" data-panel="routes"><div class="conn-sec">${connHTML}</div></div>
+  </div>`;
+}
+
+buildings.forEach(b=>{
+  const m=L.marker([b.lat,b.lng],{icon:makeIcon(b.cat)})
+    .bindPopup(()=>buildPopup(b),{maxWidth:310})
+    .addTo(map);
+  m.on('click',()=>{lastCode=b.code;highlightItem(b.code)});
+  m.on('popupopen',()=>{setTimeout(()=>{
+    const pc=document.querySelector('.leaflet-popup-content');
+    if(!pc)return;
+    pc.querySelectorAll('.ptab').forEach(tab=>{
+      tab.addEventListener('click',()=>{
+        pc.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
+        pc.querySelectorAll('.ppanel').forEach(p=>p.classList.remove('active'));
+        tab.classList.add('active');
+        pc.querySelector(`.ppanel[data-panel="${tab.dataset.tab}"]`).classList.add('active');
+      });
+    });
+  },60)});
+  markers[b.code]=m;
+});
+
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════════
+function renderList(cat){
+  const list=document.getElementById('blist');list.innerHTML='';
+  const filtered=cat==='all'?buildings:buildings.filter(b=>b.cat===cat);
+  filtered.forEach(b=>{
+    const el=document.createElement('div');el.className='bi';el.dataset.code=b.code;
+    el.innerHTML=`<div class="b-dot" style="background:${catColorHex[b.cat]}"></div>
+      <div class="b-info">
+        <div class="b-name">${b.name[lang]}</div>
+        <div class="b-meta">${b.code} · ${b.cat}</div>
+      </div>`;
+    el.addEventListener('click',()=>highlightItem(b.code,true));
+    list.appendChild(el);
+  });
+}
+renderList('all');
+
+function highlightItem(code,flyTo=false){
+  if(activeEl)activeEl.classList.remove('active');
+  const el=document.querySelector(`.bi[data-code="${code}"]`);
+  if(el){el.classList.add('active');el.scrollIntoView({block:'nearest',behavior:'smooth'});activeEl=el;}
+  const b=buildings.find(x=>x.code===code);if(!b)return;
+  if(flyTo)map.flyTo([b.lat,b.lng],17,{duration:.8});
+  markers[code].openPopup();
+  lastCode=code;
+}
+
+document.querySelectorAll('.pill').forEach(pill=>{
+  pill.addEventListener('click',()=>{
+    document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+    pill.classList.add('active');currentCat=pill.dataset.cat;renderList(currentCat);
+    buildings.forEach(b=>{const m=markers[b.code];
+      if(currentCat==='all'||b.cat===currentCat){if(!map.hasLayer(m))map.addLayer(m);}
+      else{if(map.hasLayer(m))map.removeLayer(m);}
+    });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════════════════
+const si=document.getElementById('si'),sr=document.getElementById('sr');
+si.addEventListener('input',()=>{
+  const q=si.value.toLowerCase().trim();sr.innerHTML='';
+  if(!q){sr.style.display='none';return;}
+  const hits=buildings.filter(b=>
+    b.name[lang].toLowerCase().includes(q)||b.code.toLowerCase().includes(q)||
+    b.cat.includes(q)||b.desc[lang].toLowerCase().includes(q)
+  ).slice(0,6);
+  if(!hits.length){sr.style.display='none';return;}
+  hits.forEach(b=>{
+    const item=document.createElement('div');item.className='sri';
+    item.innerHTML=`${b.name[lang]}<strong>${b.code} · ${b.cat}</strong>`;
+    item.addEventListener('click',()=>{
+      si.value='';sr.style.display='none';
+      if(currentCat!=='all'&&currentCat!==b.cat)document.querySelector('.pill[data-cat="all"]').click();
+      highlightItem(b.code,true);
+    });
+    sr.appendChild(item);
+  });
+  sr.style.display='block';
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.sw'))sr.style.display='none';});
+</script>
+</body>
+</html>
