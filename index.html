@@ -28,6 +28,7 @@
   --c-services:  #5B2D8E;
   --c-library:   #7A4000;
   --c-transit:   #00607A;
+  --c-food:      #B84B00;
   /* route colours */
   --tunnel-col:   #1A4FA0;
   --overpass-col: #B05A00;
@@ -103,6 +104,7 @@ aside{width:285px;flex-shrink:0;background:var(--white);border-right:1px solid v
 .pill[data-cat="services"]{border-color:var(--c-services);color:var(--c-services)}.pill[data-cat="services"].active{background:var(--c-services)}
 .pill[data-cat="library"]{border-color:var(--c-library);color:var(--c-library)}.pill[data-cat="library"].active{background:var(--c-library)}
 .pill[data-cat="transit"]{border-color:var(--c-transit);color:var(--c-transit)}.pill[data-cat="transit"].active{background:var(--c-transit)}
+.pill[data-cat="food"]{border-color:var(--c-food);color:var(--c-food)}.pill[data-cat="food"].active{background:var(--c-food)}
 
 /* route legend strip */
 .rl{padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:14px;flex-wrap:wrap}
@@ -178,6 +180,9 @@ aside{width:285px;flex-shrink:0;background:var(--white);border-right:1px solid v
 /* transit marker is a square/diamond */
 .cm-transit{border-radius:4px;transform:rotate(45deg)}
 .cm-transit:hover{transform:rotate(45deg) scale(1.18)}
+/* food marker — upright rounded square with emoji */
+.cm-food{border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1}
+.cm-food:hover{transform:scale(1.18)}
 
 /* ─── DIVIDER ────────────────────────────────────────────────────── */
 .leg-div{border-top:1px solid var(--border);margin:5px 0}
@@ -217,6 +222,7 @@ aside{width:285px;flex-shrink:0;background:var(--white);border-right:1px solid v
       <div class="pill" data-cat="services"  data-en="Services"  data-fr="Services">Services</div>
       <div class="pill" data-cat="library"   data-en="Library"   data-fr="Bibliothèque">Bibliothèque</div>
       <div class="pill" data-cat="transit"   data-en="Transit"   data-fr="Transport">Transport</div>
+      <div class="pill" data-cat="food"      data-en="Food"      data-fr="Nourriture">Nourriture</div>
     </div>
   </div>
   <div class="rl">
@@ -237,6 +243,7 @@ aside{width:285px;flex-shrink:0;background:var(--white);border-right:1px solid v
     <div class="lr"><div class="ldot" style="background:var(--c-services)"></div><span data-en="Services" data-fr="Services">Services</span></div>
     <div class="lr"><div class="ldot" style="background:var(--c-library)"></div><span data-en="Library" data-fr="Bibliothèque">Bibliothèque</span></div>
     <div class="lr"><div class="ldot" style="background:var(--c-transit);border-radius:3px"></div><span data-en="Transit" data-fr="Transport">Transport</span></div>
+    <div class="lr"><div class="ldot" style="background:var(--c-food);border-radius:3px"></div><span data-en="Food" data-fr="Nourriture">Nourriture</span></div>
     <div class="leg-div"></div>
     <div class="lr"><div class="lline" style="background:var(--tunnel-col);background-image:repeating-linear-gradient(90deg,var(--tunnel-col) 0,var(--tunnel-col) 5px,transparent 5px,transparent 9px)"></div><span data-en="Tunnel" data-fr="Tunnel">Tunnel</span></div>
     <div class="lr"><div class="lline" style="background:var(--overpass-col);background-image:repeating-linear-gradient(90deg,var(--overpass-col) 0,var(--overpass-col) 5px,transparent 5px,transparent 9px)"></div><span data-en="Overpass" data-fr="Passerelle">Passerelle</span></div>
@@ -289,10 +296,11 @@ const catColor={
   services:  'var(--c-services)',
   library:   'var(--c-library)',
   transit:   'var(--c-transit)',
+  food:      'var(--c-food)',
 };
 const catColorHex={
   academic:'#1A4FA0',residence:'#1A6B3A',sports:'#B05A00',
-  services:'#5B2D8E',library:'#7A4000',transit:'#00607A',
+  services:'#5B2D8E',library:'#7A4000',transit:'#00607A',food:'#B84B00',
 };
 
 const buildings=[
@@ -310,10 +318,10 @@ const buildings=[
 
   {code:'UCU',name:{en:'University Centre',fr:'Centre universitaire'},lat:45.4226,lng:-75.6838,cat:'services',
    desc:{en:'Heart of student life. Houses dining, the student union, lounges, and many essential services — including International House, the go-to hub for international students.',
-         fr:"Cœur de la vie étudiante. Comprend le service de restauration, le syndicat étudiant, des salons et de nombreux services essentiels, dont la Maison internationale pour les étudiants étrangers."},
+         fr:"Cœur de la vie étudiante. Comprend le service de nourriture, le syndicat étudiant, des salons et de nombreux services essentiels, dont la Maison internationale pour les étudiants étrangers."},
    resources:{
      en:['🌐 International House (iHouse) — Room 215E, community hub & cultural events for international students','UOSU Student Rights Centre — free legal & academic advocacy','UOSU Food Bank — confidential, no-questions-asked food access','Campus Pharmacy — prescriptions, bus passes, OC Transpo info','Dining hall & multiple food vendors — meal plan activation','Multi-faith prayer & reflection space','Student clubs & association offices'],
-     fr:['🌐 Maison internationale (iHouse) — local 215E, carrefour communautaire et événements culturels','Centre des droits étudiants SÉUO — aide juridique et académique gratuite','Banque alimentaire SÉUO — accès confidentiel à de la nourriture','Pharmacie campus — ordonnances, laissez-passer de bus, info OC Transpo','Cafétéria et restauration variée — activation du régime de repas','Espace de prière et réflexion multireligieux','Bureaux des clubs et associations étudiants']},
+     fr:['🌐 Maison internationale (iHouse) — local 215E, carrefour communautaire et événements culturels','Centre des droits étudiants SÉUO — aide juridique et académique gratuite','Banque alimentaire SÉUO — accès confidentiel à de la nourriture','Pharmacie campus — ordonnances, laissez-passer de bus, info OC Transpo','Cafétéria et restaurants variée — activation du régime de repas','Espace de prière et réflexion multireligieux','Bureaux des clubs et associations étudiants']},
    access:{
      en:['Fully accessible ground floor','Elevator to all floors','Connected to Morisset Library (ground + 2nd floor) — no outdoor walking','Connected to Montpetit Hall (2nd floor, corridor 201)','Overpass to Tabaret'],
      fr:['Rez-de-chaussée entièrement accessible','Ascenseur à tous les étages','Relié à la bibliothèque Morisset (rdc + 2e) — sans sortir','Relié à l\'édifice Montpetit (2e étage, corridor 201)','Passerelle vers Tabaret']},
@@ -630,6 +638,80 @@ const buildings=[
    access:{en:['Accessible shuttle vehicles available','Contact the Sustainable Transportation Office to request accessible seating','Para Transpo alternative available for those unable to use the shuttle'],
            fr:['Véhicules de navette accessibles disponibles','Contactez le Bureau du transport durable pour demander des places accessibles','Para Transpo disponible pour ceux ne pouvant pas utiliser la navette']},
    connections:{en:[],fr:[]},connTypes:[]},
+
+  // ── FOOD & DINING ─────────────────────────────────────────
+  {code:'DH',name:{en:'Dining Hall (UCU Level 1)',fr:'Cafétéria principale (UCU niveau 1)'},lat:45.4233,lng:-75.6826,cat:'food',
+   desc:{en:'The main all-you-care-to-eat dining hall on campus with 10 stations. Vegetarian, vegan & halal options available. Open to all — students, staff, faculty and guests alike.',
+         fr:"La cafétéria principale à volonté du campus avec 10 stations alimentaires. Options végétariennes, véganes et halal disponibles. Ouverte à tous — étudiants, employés, professeurs et invités."},
+   resources:{
+     en:['10 food stations — vegetarian, vegan & halal options always available','Meal plan swipe access (5-day ~$6,550 or 7-day ~$7,225 for 8 months)','Pay-at-door option — no meal plan required','Flex Dollars & Dining Dollars accepted','Dessert and drinks stations included','Hours: Mon–Fri 7:30 a.m.–8 p.m. · Sat–Sun 10 a.m.–6 p.m.','Location: UCU Level 1, 85 University Private · ext. 2075'],
+     fr:['10 stations alimentaires — options végétariennes, véganes et halal toujours disponibles','Accès par régime de repas (5 jours ~6 550 $ ou 7 jours ~7 225 $ pour 8 mois)','Paiement à la porte — aucun régime requis','Dollars-repas et Dollars flexibles acceptés','Stations desserts et boissons incluses','Heures : lun–ven 7h30–20h · sam–dim 10h–18h','Emplacement : UCU niveau 1, 85, University Private · poste 2075']},
+   access:{en:['Accessible entrance from UCU ground floor','Elevator to all UCU levels','Accessible seating areas throughout the hall'],
+           fr:['Entrée accessible depuis le rez-de-chaussée du Centre universitaire','Ascenseur à tous les niveaux du Centre universitaire','Espaces de restauration accessibles dans toute la salle']},
+   connections:{en:['Inside UCU — connected to Morisset, Tabaret & Montpetit (no outdoor walking)'],fr:['À l\'intérieur du Centre universitaire — relié à Morisset, Tabaret et Montpetit (sans sortir)']},connTypes:['overpass']},
+
+  {code:'BSJUICE',name:{en:'Bento Sushi & 305 Juice Bar (UCU)',fr:'Bento Sushi & Bar à jus 305 (UCU)'},lat:45.4234,lng:-75.6830,cat:'food',
+   desc:{en:'Two healthy spots side by side inside UCU Level 0. Bento Sushi offers ready-made sushi boxes and poke bowls. The 305 Juice Bar serves fresh-squeezed juices and smoothies. Tim Hortons Express is steps away.',
+         fr:"Deux options santé côte à côte dans le niveau 0 du Centre universitaire. Bento Sushi propose des sushis prêts à emporter et des bols pokés. Le bar à jus 305 sert des jus frais et des smoothies. Un Tim Hortons Express se trouve à quelques pas."},
+   resources:{
+     en:['Bento Sushi: ready-made sushi boxes, poke bowls & made-to-order rolls','305 Juice Bar: fresh-squeezed juices & blended smoothies','Tim Hortons Express right next door','Flex Dollars & student card accepted','Hours: Mon–Fri 7:30 a.m.–7 p.m. · Sat–Sun Closed','Location: UCU Level 0 · ext. 4385 (Juice) / ext. 6780 (Sushi)'],
+     fr:['Bento Sushi : sushis prêts à emporter, bols pokés et rouleaux sur commande','Bar à jus 305 : jus fraîchement pressés et smoothies','Tim Hortons Express juste à côté','Dollars flexibles et carte étudiante acceptés','Heures : lun–ven 7h30–19h · sam–dim fermé','Emplacement : UCU niveau 0 · poste 4385 (Jus) / poste 6780 (Sushi)']},
+   access:{en:['Accessible via UCU ground floor — fully level, no steps'],fr:['Accessible via le rez-de-chaussée du Centre universitaire — plain-pied, sans marches']},
+   connections:{en:['Inside UCU — connected to Morisset Library & Tabaret'],fr:['À l\'intérieur du Centre universitaire — relié à Morisset et Tabaret']},connTypes:['overpass']},
+
+  {code:'NOX',name:{en:'Nox Eatery & Public House',fr:'Nox Eatery & Public House'},lat:45.4230,lng:-75.6827,cat:'food',
+   desc:{en:'A campus hidden gem inside UCU: burgers, wings, tacos, nachos, fajitas and a smoothie bar — plus a pool table overlooking the Minto ice rink. Weekly events: free pool Mondays, Karaoke Wednesdays, Trivia Tuesdays.',
+         fr:"Un joyau caché du campus dans le Centre universitaire : burgers, ailes de poulet, tacos, nachos, fajitas et bar à smoothies — plus une table de billard avec vue sur la patinoire de Minto. Événements hebdomadaires : billard gratuit le lundi, karaoké le mercredi, soirée quiz le mardi."},
+   resources:{
+     en:['Burgers, wings, tacos, nachos, fajitas & smoothie bar','Free pool — Rack\'Em Up Mondays · Karaoke Wednesdays · Trivia Tuesdays','Student-friendly pricing throughout','Hours: Mon–Wed 11 a.m.–10 p.m. · Thu 11 a.m.–midnight · Fri–Sat 11 a.m.–1 a.m. · Sun 11 a.m.–11 p.m.'],
+     fr:['Burgers, ailes de poulet, tacos, nachos, fajitas et bar à smoothies','Billard gratuit les lundis · Karaoké les mercredis · Soirée quiz les mardis','Prix abordables pour les étudiants','Heures : lun–mer 11h–22h · jeu 11h–minuit · ven–sam 11h–1h · dim 11h–23h']},
+   access:{en:['Accessible entrance inside UCU · Level flooring throughout'],fr:['Entrée accessible à l\'intérieur du Centre universitaire · Plancher de plain-pied partout']},
+   connections:{en:['Inside UCU'],fr:['À l\'intérieur du Centre universitaire']},connTypes:[]},
+
+  {code:'SBUX',name:{en:'Starbucks (Desmarais Hall)',fr:'Starbucks (Édifice Desmarais)'},lat:45.4238,lng:-75.6876,cat:'food',
+   desc:{en:'The only Starbucks on campus, at Desmarais Hall Level 1. Specialty coffee, premium teas, pastries and a comfortable seating area — popular for studying and meeting up. Starbucks app accepted.',
+         fr:"Le seul Starbucks sur le campus, au niveau 1 de l'édifice Desmarais. Café de spécialité, thés haut de gamme, pâtisseries et espace de restauration confortable — populaire pour étudier et se retrouver. Application Starbucks acceptée."},
+   resources:{
+     en:['Full Starbucks menu: specialty drinks, Tazo teas & pastries','Starbucks app, gift cards, Interac & uOttawa card accepted','Comfortable seating — great study and meet-up spot','Reusable cup discount: 25¢ off every visit','Hours: Mon–Fri 7:30 a.m.–4 p.m. · Sat–Sun Closed','Location: DMS Level 1, 50 Laurier Ave East · ext. 3935'],
+     fr:['Menu Starbucks complet : boissons de spécialité, thés Tazo et pâtisseries','Application Starbucks, cartes-cadeaux, Interac et carte uOttawa acceptés','Sièges confortables — idéal pour étudier et se retrouver','Réduction tasse réutilisable : 0,25 $ de rabais à chaque visite','Heures : lun–ven 7h30–16h · sam–dim fermé','Emplacement : DMS niveau 1, 50, avenue Laurier Est · poste 3935']},
+   access:{en:['Accessible main entrance on Laurier East · Elevator in DMS to all floors'],fr:['Entrée principale accessible sur le boulevard Laurier Est · Ascenseur dans DMS à tous les étages']},
+   connections:{en:['Inside Desmarais Hall'],fr:['À l\'intérieur de l\'édifice Desmarais']},connTypes:[]},
+
+  {code:'CRX',name:{en:'Learning Crossroads Food Court (CRX)',fr:'Carrefour de l\'apprentissage — Restaurants (CRX)'},lat:45.4220,lng:-75.6800,cat:'food',
+   desc:{en:'Food court between SITE and the engineering buildings with three vendors under one roof: Tim Hortons, Paramount Lebanese Kitchen (famous for shawarma poutine with house garlic sauce), and Thai Express.',
+         fr:"Carrefour de restauration entre SITE et les bâtiments de génie avec trois enseignes sous un même toit : Tim Hortons, Paramount Lebanese Kitchen (célèbre pour sa poutine shawarma et sa sauce à l'ail maison) et Thai Express."},
+   resources:{
+     en:['Tim Hortons — coffee, baked goods & hot meals (Mon–Fri 7:30 a.m.–7:30 p.m.)','Paramount Lebanese Kitchen — shawarma, poutine & house garlic sauce (7 days/week, 11 a.m.–10 p.m.)','Thai Express — pad thai, curries & Asian-inspired dishes (Mon–Fri 11 a.m.–7 p.m.)','Flex Dollars & Dining Dollars accepted at all vendors','Location: 100 Louis-Pasteur Private (CRX)'],
+     fr:['Tim Hortons — café, pâtisseries et repas chauds (lun–ven 7h30–19h30)','Paramount Lebanese Kitchen — shawarma, poutine et sauce à l\'ail maison (7 jours/semaine, 11h–22h)','Thai Express — pad thaï, currys et plats asiatiques (lun–ven 11h–19h)','Dollars flexibles et Dollars-repas acceptés chez tous les vendeurs','Emplacement : 100, Louis-Pasteur Private (CRX)']},
+   access:{en:['Accessible entrance on Louis-Pasteur Private · Level flooring throughout the food court'],fr:['Entrée accessible sur Louis-Pasteur Private · Plancher de plain-pied dans tout le carrefour']},
+   connections:{en:['Adjacent to SITE Building (underground tunnel to Colonel By)'],fr:['Adjacent à l\'édifice SITE (tunnel souterrain vers Colonel By)']},connTypes:[]},
+
+  {code:'PREMM',name:{en:'Première Moisson (Social Sciences)',fr:'Première Moisson (Sciences sociales)'},lat:45.4222,lng:-75.6857,cat:'food',
+   desc:{en:'Artisan Québec bakery in the Social Sciences lobby. Renowned for exceptional bread, croissants, pastries and sandwiches — a favourite grab-and-go spot before class. Flex Dollars accepted.',
+         fr:"Boulangerie artisanale québécoise dans le hall des sciences sociales. Reconnue pour son pain exceptionnel, ses croissants, pâtisseries et sandwichs — un incontournable avant les cours. Dollars flexibles acceptés."},
+   resources:{
+     en:['Freshly baked artisan bread, croissants & pastries daily','Hot & cold sandwiches made to order','Coffee & specialty beverages','Flex Dollars & student card accepted','Hours: Mon–Fri 8 a.m.–5 p.m. · Sat–Sun Closed','Location: FSS lobby, 120 University Private · ext. 4512'],
+     fr:['Pain artisanal, croissants et pâtisseries fraîchement cuits chaque jour','Sandwichs chauds et froids sur commande','Café et boissons de spécialité','Dollars flexibles et carte étudiante acceptés','Heures : lun–ven 8h–17h · sam–dim fermé','Emplacement : Hall de FSS, 120, University Private · poste 4512']},
+   access:{en:['Accessible entrance on University Private · Level lobby — no steps'],fr:['Entrée accessible sur University Private · Hall de plain-pied — sans marches']},
+   connections:{en:['Inside FSS — overpass to Vanier Hall (4th floor)'],fr:['À l\'intérieur de FSS — passerelle vers l\'édifice Vanier (4e étage)']},connTypes:[]},
+
+  {code:'SECONDCUP',name:{en:'Second Cup (Morisset Library)',fr:'Second Cup (Bibliothèque Morisset)'},lat:45.4231,lng:-75.6848,cat:'food',
+   desc:{en:'Café on the ground floor of Morisset Library — the ideal study fuel stop. Coffee, teas and specialty drinks without ever leaving the building, and directly connected to UCU so you stay warm all winter.',
+         fr:"Café au rez-de-chaussée de la bibliothèque Morisset — l'arrêt carburant idéal pour les séances d'étude. Cafés, thés et boissons de spécialité sans jamais quitter l'immeuble, directement relié au Centre universitaire pour rester au chaud tout l'hiver."},
+   resources:{
+     en:['Coffee, tea & specialty café drinks','Light snacks & pastries','Flex Dollars & student card accepted','Inside Morisset Library — no need to go outside','Hours: Mon–Fri 8 a.m.–8 p.m. · Sat–Sun 10 a.m.–6 p.m.'],
+     fr:['Café, thé et boissons de café de spécialité','Collations légères et pâtisseries','Dollars flexibles et carte étudiante acceptés','À l\'intérieur de la bibliothèque Morisset — pas besoin de sortir','Heures : lun–ven 8h–20h · sam–dim 10h–18h']},
+   access:{en:['Accessible via Morisset ground floor entrance · Connected to UCU — fully sheltered'],fr:['Accessible via l\'entrée du rez-de-chaussée de Morisset · Relié au Centre universitaire — entièrement à couvert']},
+   connections:{en:['Inside Morisset Library — connected to UCU & Thompson Residence (sheltered)'],fr:['À l\'intérieur de la bibliothèque Morisset — relié au Centre universitaire et à la résidence Thompson (à couvert)']},connTypes:['overpass']},
+
+  {code:'GOCAFE',name:{en:'Go Café (Tabaret · Fauteux · Lamoureux)',fr:'Go Café (Tabaret · Fauteux · Lamoureux)'},lat:45.4235,lng:-75.6856,cat:'food',
+   desc:{en:'uOttawa\'s express coffee kiosk brand with locations inside Tabaret Hall, Fauteux Hall and Lamoureux Hall. Quick coffee and tea with light snacks — no need to go outside. 25¢ discount with a reusable cup.',
+         fr:"La marque de kiosques café express de l'uOttawa avec des emplacements dans les édifices Tabaret, Fauteux et Lamoureux. Café et thé rapides avec collations légères — sans sortir. Rabais de 0,25 $ avec une tasse réutilisable."},
+   resources:{
+     en:['Coffee, tea & express beverages','Light snacks & pastries','Student card accepted · Reusable cup: 25¢ off every purchase','Locations: Tabaret (TBT) · Fauteux (FTX) · Lamoureux (LMX)','Hours: Mon–Fri 8 a.m.–3:30 p.m. · Sat–Sun Closed'],
+     fr:['Café, thé et boissons express','Collations légères et pâtisseries','Carte étudiante acceptée · Tasse réutilisable : 0,25 $ de rabais à chaque achat','Emplacements : Tabaret (TBT) · Fauteux (FTX) · Lamoureux (LMX)','Heures : lun–ven 8h–15h30 · sam–dim fermé']},
+   access:{en:['All three locations are inside fully accessible buildings · Kiosk-style counter — no barriers'],fr:['Les trois emplacements sont dans des bâtiments entièrement accessibles · Service au comptoir kiosque — sans obstacles']},
+   connections:{en:['Inside Tabaret, Fauteux & Lamoureux — each connected via overpasses/corridors'],fr:['À l\'intérieur de Tabaret, Fauteux et Lamoureux — chacun relié par des passerelles/corridors']},connTypes:['overpass']},
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -690,11 +772,15 @@ const markers={};let activeEl=null,currentCat='all',lastCode=null;
 
 function makeIcon(cat){
   const c=catColorHex[cat];
-  const isTransit=cat==='transit';
-  if(isTransit){
+  if(cat==='transit'){
     return L.divIcon({className:'',
       html:`<div class="cm cm-transit" style="width:26px;height:26px;background:${c}"></div>`,
       iconSize:[26,26],iconAnchor:[13,13],popupAnchor:[0,-17]});
+  }
+  if(cat==='food'){
+    return L.divIcon({className:'',
+      html:`<div class="cm cm-food" style="width:30px;height:30px;background:${c};">🍴</div>`,
+      iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-18]});
   }
   return L.divIcon({className:'',
     html:`<div class="cm" style="width:28px;height:28px;background:${c}"></div>`,
