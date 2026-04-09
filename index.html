@@ -798,7 +798,7 @@ const legacyAccessPaths=[
 ];
 
 const importedAccessRoute=[
-  {coords:[[45.42554,-75.68787],[45.42566,-75.68737],[45.42506,-75.68708],[45.42554,-75.68579],[45.42418,-75.68709],[45.42357,-75.68735],[45.42376,-75.68688],[45.4243,-75.68658],[45.42425,-75.68588],[45.42498,-75.68415],[45.42361,-75.68576],[45.42251,-75.68477],[45.42256,-75.68455],[45.4236,-75.68482],[45.42393,-75.68401],[45.4233,-75.68392],[45.42288,-75.68396],[45.42272,-75.68422],[45.42238,-75.68324],[45.42351,-75.68369],[45.42433,-75.68312],[45.42417,-75.68253],[45.42374,-75.68269],[45.42396,-75.68223],[45.42323,-75.68323],[45.42334,-75.68208],[45.42223,-75.68221],[45.42166,-75.68147],[45.42124,-75.68329],[45.42181,-75.68342],[45.42179,-75.68222],[45.42116,-75.68214],[45.42127,-75.6816],[45.42078,-75.68179],[45.42053,-75.68139],[45.42049,-75.68058],[45.41995,-75.68048],[45.41994,-75.67962],[45.41976,-75.67908],[45.42006,-75.67887],[45.41961,-75.67872],[45.42184,-75.68046],[45.42111,-75.68019],[45.42075,-75.6787],[45.42069,-75.67811],[45.42136,-75.67849],[45.41951,-75.67738],[45.41979,-75.67577]],label:{en:'â™¿ Accessible route',fr:'â™¿ Parcours accessible'}},
+  {coords:[[45.42554,-75.68787],[45.42566,-75.68737],[45.42506,-75.68708],[45.42554,-75.68579],[45.42418,-75.68709],[45.42357,-75.68735],[45.42376,-75.68688],[45.4243,-75.68658],[45.42425,-75.68588],[45.42498,-75.68415],[45.42361,-75.68576],[45.42251,-75.68477],[45.42256,-75.68455],[45.4236,-75.68482],[45.42393,-75.68401],[45.4233,-75.68392],[45.42288,-75.68396],[45.42272,-75.68422],[45.42238,-75.68324],[45.42351,-75.68369],[45.42433,-75.68312],[45.42417,-75.68253],[45.42374,-75.68269],[45.42396,-75.68223],[45.42323,-75.68323],[45.42334,-75.68208],[45.42223,-75.68221],[45.42166,-75.68147],[45.42124,-75.68329],[45.42181,-75.68342],[45.42179,-75.68222],[45.42116,-75.68214],[45.42127,-75.6816],[45.42078,-75.68179],[45.42053,-75.68139],[45.42049,-75.68058],[45.41995,-75.68048],[45.41994,-75.67962],[45.41976,-75.67908],[45.42006,-75.67887],[45.41961,-75.67872],[45.42184,-75.68046],[45.42111,-75.68019],[45.42075,-75.6787],[45.42069,-75.67811],[45.42136,-75.67849],[45.41951,-75.67738],[45.41979,-75.67577]],label:{en:'♿ Accessible route',fr:'♿ Parcours accessible'}},
 ];
 
 const accessPaths=[
@@ -944,14 +944,14 @@ function buildPopup(b){
   const name=b.name[lang];
   const desc=b.desc[lang];
   const resList=(b.resources[lang]||[]).map(r=>`<li>${r}</li>`).join('');
-  const accList=(b.access[lang]||[]).map(a=>`<li><span class="ai">â™¿</span>${a}</li>`).join('');
+  const accList=(b.access[lang]||[]).map(a=>`<li><span class="ai">♿</span>${a}</li>`).join('');
   const connHTML=b.connections[lang]&&b.connections[lang].length
-    ?b.connections[lang].map((c,i)=>`<div style="margin-bottom:4px"><span class="ctag ctag-${b.connTypes[i]}">${b.connTypes[i]==='tunnel'?(lang==='en'?'ðŸš‡ Tunnel':'ðŸš‡ Tunnel'):(lang==='en'?'ðŸŒ‰ Overpass':'ðŸŒ‰ Passerelle')}</span>${c}</div>`).join('')
+    ?b.connections[lang].map((c,i)=>`<div style="margin-bottom:4px"><span class="ctag ctag-${b.connTypes[i]}">${b.connTypes[i]==='tunnel'?(lang==='en'?'ðŸš‡ Tunnel':'ðŸš‡ Tunnel'):(lang==='en'?'ðŸŒ‰ Overpass':'🌉 Passerelle')}</span>${c}</div>`).join('')
     :`<div class="no-conn">${lang==='en'?'No indoor connections â€” outdoor walking required':'Aucune connexion intÃ©rieure â€” marche Ã  l\'extÃ©rieur requise'}</div>`;
   const tabs=[
-    {id:'about',  en:'About',    fr:'Ã€ propos'},
+    {id:'about',  en:'About',    fr:'À propos'},
     {id:'resources',en:'Resources',fr:'Ressources'},
-    {id:'access', en:'Access â™¿', fr:'AccÃ¨s â™¿'},
+    {id:'access', en:'Access ♿', fr:'Accès ♿'},
     {id:'routes', en:'Routes',   fr:'Trajets'},
   ];
   const tabHTML=tabs.map((t,i)=>`<div class="ptab${i===0?' active':''}" data-tab="${t.id}">${t[lang]}</div>`).join('');
@@ -1013,7 +1013,7 @@ function renderList(cat){
     el.innerHTML=`<div class="b-dot" style="background:${catColorHex[b.cat]}"></div><div class="b-ico">${catIcons[b.cat]||''}</div>
       <div class="b-info">
         <div class="b-name">${b.name[lang]}</div>
-        <div class="b-meta">${b.code} Â· ${b.cat}</div>
+        <div class="b-meta">${b.code} · ${b.cat}</div>
       </div>`;
     el.addEventListener('click',()=>highlightItem(b.code,true));
     list.appendChild(el);
