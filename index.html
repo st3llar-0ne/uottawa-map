@@ -97,6 +97,7 @@ aside{width:285px;flex-shrink:0;background:var(--white);border-right:1px solid v
 .pill{padding:3px 11px;border-radius:3px;font-size:.68rem;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all .18s;letter-spacing:.03em;text-transform:uppercase}
 .pill:focus-visible{outline:3px solid var(--charcoal);outline-offset:2px}
 .pill.active{color:var(--white) !important}
+.pill .pi{margin-right:5px}
 .pill[data-cat="all"]{border-color:var(--garnet);color:var(--garnet)}.pill[data-cat="all"].active{background:var(--garnet);color:var(--white)}
 .pill[data-cat="academic"]{border-color:var(--c-academic);color:var(--c-academic)}.pill[data-cat="academic"].active{background:var(--c-academic)}
 .pill[data-cat="residence"]{border-color:var(--c-residence);color:var(--c-residence)}.pill[data-cat="residence"].active{background:var(--c-residence)}
@@ -124,6 +125,7 @@ aside{width:285px;flex-shrink:0;background:var(--white);border-right:1px solid v
 .bi.active .b-meta{color:rgba(255,255,255,.75)}
 .bi.active .b-dot{border:2px solid rgba(255,255,255,.6)}
 .b-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.b-ico{width:18px;text-align:center;flex-shrink:0;line-height:1;margin-top:1px}
 .b-info{min-width:0;flex:1}
 .b-name{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--charcoal)}
 .b-meta{font-size:.67rem;color:var(--warm-grey);margin-top:2px}
@@ -173,6 +175,7 @@ aside{width:285px;flex-shrink:0;background:var(--white);border-right:1px solid v
 .lr{display:flex;align-items:center;gap:7px;margin-bottom:4px;color:var(--warm-grey);font-weight:500}
 .ldot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
 .lline{width:20px;height:4px;border-radius:1px;flex-shrink:0}
+.li{width:16px;text-align:center;flex-shrink:0}
 
 /* ─── MARKER ─────────────────────────────────────────────────────── */
 .cm{display:flex;align-items:center;justify-content:center;border-radius:50%;border:2.5px solid rgba(255,255,255,.9);box-shadow:0 2px 7px rgba(0,0,0,.28);cursor:pointer;transition:transform .15s}
@@ -183,6 +186,7 @@ aside{width:285px;flex-shrink:0;background:var(--white);border-right:1px solid v
 /* food marker — upright rounded square with emoji */
 .cm-food{border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1}
 .cm-food:hover{transform:scale(1.18)}
+.cm-emoji{font-size:13px;line-height:1}
 
 /* ─── DIVIDER ────────────────────────────────────────────────────── */
 .leg-div{border-top:1px solid var(--border);margin:5px 0}
@@ -276,6 +280,7 @@ function applyLang(){
     else{el.textContent=lang==='en'?el.dataset.en:el.dataset.fr;}
   });
   document.querySelectorAll('.tog span').forEach(s=>{s.textContent=lang==='en'?s.dataset.en:s.dataset.fr});
+  decorateCategoryUI();
   renderList(currentCat);
   // refresh open popup
   if(lastCode) markers[lastCode]&&markers[lastCode].openPopup();
@@ -302,6 +307,38 @@ const catColorHex={
   academic:'#1A4FA0',residence:'#1A6B3A',sports:'#B05A00',
   services:'#5B2D8E',library:'#7A4000',transit:'#00607A',food:'#B84B00',
 };
+const catIcons={
+  all:'🗺️',
+  academic:'🎓',
+  residence:'🏠',
+  sports:'🏅',
+  services:'🤝',
+  library:'📚',
+  transit:'🚌',
+  food:'🍴',
+};
+
+function decorateCategoryUI(){
+  document.querySelectorAll('.pill').forEach(pill=>{
+    const icon=catIcons[pill.dataset.cat];
+    if(icon && !pill.querySelector('.pi')) pill.insertAdjacentHTML('afterbegin',`<span class="pi">${icon}</span>`);
+  });
+
+  document.querySelectorAll('.mleg .lr').forEach(row=>{
+    if(row.querySelector('.li')) return;
+    const dot=row.querySelector('.ldot');
+    let key=null;
+    if(!dot) return;
+    if(dot.style.background.includes('--c-academic')) key='academic';
+    else if(dot.style.background.includes('--c-residence')) key='residence';
+    else if(dot.style.background.includes('--c-sports')) key='sports';
+    else if(dot.style.background.includes('--c-services')) key='services';
+    else if(dot.style.background.includes('--c-library')) key='library';
+    else if(dot.style.background.includes('--c-transit')) key='transit';
+    else if(dot.style.background.includes('--c-food')) key='food';
+    if(key) row.insertAdjacentHTML('afterbegin',`<span class="li">${catIcons[key]}</span>`);
+  });
+}
 
 const buildings=[
   // ── ACADEMIC ─────────────────────────────────────────────
@@ -753,17 +790,72 @@ const overpassRoutes=[
   {coords:[[45.4196,-75.6790],[45.4193,-75.6790]],label:{en:'🌉 Perez ↔ Leblanc',fr:'🌉 Perez ↔ Leblanc'}},
   {coords:[[45.4238,-75.6858],[45.4233,-75.6855]],label:{en:'🌉 Perez ↔ Leblanc',fr:'🌉 Perez ↔ Leblanc'}},
 ];
-const accessPaths=[
+const legacyAccessPaths=[
   {coords:[[45.4226,-75.6836],[45.4231,-75.6846]],label:{en:'♿ Accessible: Tabaret → Morisset',fr:'♿ Accessible : Tabaret → Morisset'}},
   {coords:[[45.4217,-75.6855],[45.4233,-75.6830]],label:{en:'♿ Accessible: Montpetit → UCU',fr:'♿ Accessible : Montpetit → Centre universitaire'}},
   {coords:[[45.4231,-75.6865],[45.4222,-75.6855]],label:{en:'♿ Accessible: Fauteux → FSS area',fr:'♿ Accessible : Fauteux → Édifice des sciences sociales'}},
   {coords:[[45.4225,-75.6783],[45.4233,-75.6830]],label:{en:'♿ Accessible: Minto → UCU path',fr:'♿ Accessible : Minto → Centre universitaire'}},
 ];
 
+const importedAccessRoute=[
+  {coords:[[45.42554,-75.68787],[45.42566,-75.68737],[45.42506,-75.68708],[45.42554,-75.68579],[45.42418,-75.68709],[45.42357,-75.68735],[45.42376,-75.68688],[45.4243,-75.68658],[45.42425,-75.68588],[45.42498,-75.68415],[45.42361,-75.68576],[45.42251,-75.68477],[45.42256,-75.68455],[45.4236,-75.68482],[45.42393,-75.68401],[45.4233,-75.68392],[45.42288,-75.68396],[45.42272,-75.68422],[45.42238,-75.68324],[45.42351,-75.68369],[45.42433,-75.68312],[45.42417,-75.68253],[45.42374,-75.68269],[45.42396,-75.68223],[45.42323,-75.68323],[45.42334,-75.68208],[45.42223,-75.68221],[45.42166,-75.68147],[45.42124,-75.68329],[45.42181,-75.68342],[45.42179,-75.68222],[45.42116,-75.68214],[45.42127,-75.6816],[45.42078,-75.68179],[45.42053,-75.68139],[45.42049,-75.68058],[45.41995,-75.68048],[45.41994,-75.67962],[45.41976,-75.67908],[45.42006,-75.67887],[45.41961,-75.67872],[45.42184,-75.68046],[45.42111,-75.68019],[45.42075,-75.6787],[45.42069,-75.67811],[45.42136,-75.67849],[45.41951,-75.67738],[45.41979,-75.67577]],label:{en:'â™¿ Accessible route',fr:'â™¿ Parcours accessible'}},
+];
+
+const accessPaths=[
+  {coord:[45.42554,-75.68787],label:{en:'Accessible entrance WP01-A',fr:'Entree accessible WP01-A'}},
+  {coord:[45.42566,-75.68737],label:{en:'Accessible entrance WP02-B',fr:'Entree accessible WP02-B'}},
+  {coord:[45.42506,-75.68708],label:{en:'Accessible entrance WP03-C',fr:'Entree accessible WP03-C'}},
+  {coord:[45.42554,-75.68579],label:{en:'Accessible entrance WP04-D',fr:'Entree accessible WP04-D'}},
+  {coord:[45.42418,-75.68709],label:{en:'Accessible entrance WP05-E',fr:'Entree accessible WP05-E'}},
+  {coord:[45.42357,-75.68735],label:{en:'Accessible entrance WP06-F',fr:'Entree accessible WP06-F'}},
+  {coord:[45.42376,-75.68688],label:{en:'Accessible entrance WP07-G',fr:'Entree accessible WP07-G'}},
+  {coord:[45.4243,-75.68658],label:{en:'Accessible entrance WP08-H',fr:'Entree accessible WP08-H'}},
+  {coord:[45.42425,-75.68588],label:{en:'Accessible entrance WP09-I',fr:'Entree accessible WP09-I'}},
+  {coord:[45.42498,-75.68415],label:{en:'Accessible entrance WP10-J',fr:'Entree accessible WP10-J'}},
+  {coord:[45.42361,-75.68576],label:{en:'Accessible entrance WP11-K',fr:'Entree accessible WP11-K'}},
+  {coord:[45.42251,-75.68477],label:{en:'Accessible entrance WP12-L',fr:'Entree accessible WP12-L'}},
+  {coord:[45.42256,-75.68455],label:{en:'Accessible entrance WP13-M',fr:'Entree accessible WP13-M'}},
+  {coord:[45.4236,-75.68482],label:{en:'Accessible entrance WP14-N',fr:'Entree accessible WP14-N'}},
+  {coord:[45.42393,-75.68401],label:{en:'Accessible entrance WP15-O',fr:'Entree accessible WP15-O'}},
+  {coord:[45.4233,-75.68392],label:{en:'Accessible entrance WP16-P',fr:'Entree accessible WP16-P'}},
+  {coord:[45.42288,-75.68396],label:{en:'Accessible entrance WP17-Q',fr:'Entree accessible WP17-Q'}},
+  {coord:[45.42272,-75.68422],label:{en:'Accessible entrance WP18-R',fr:'Entree accessible WP18-R'}},
+  {coord:[45.42238,-75.68324],label:{en:'Accessible entrance WP19-S',fr:'Entree accessible WP19-S'}},
+  {coord:[45.42351,-75.68369],label:{en:'Accessible entrance WP20-T',fr:'Entree accessible WP20-T'}},
+  {coord:[45.42433,-75.68312],label:{en:'Accessible entrance WP21-U',fr:'Entree accessible WP21-U'}},
+  {coord:[45.42417,-75.68253],label:{en:'Accessible entrance WP22-V',fr:'Entree accessible WP22-V'}},
+  {coord:[45.42374,-75.68269],label:{en:'Accessible entrance WP23-W',fr:'Entree accessible WP23-W'}},
+  {coord:[45.42396,-75.68223],label:{en:'Accessible entrance WP24-X',fr:'Entree accessible WP24-X'}},
+  {coord:[45.42323,-75.68323],label:{en:'Accessible entrance WP25-Y',fr:'Entree accessible WP25-Y'}},
+  {coord:[45.42334,-75.68208],label:{en:'Accessible entrance WP26-Z',fr:'Entree accessible WP26-Z'}},
+  {coord:[45.42223,-75.68221],label:{en:'Accessible entrance WP27',fr:'Entree accessible WP27'}},
+  {coord:[45.42166,-75.68147],label:{en:'Accessible entrance WP28',fr:'Entree accessible WP28'}},
+  {coord:[45.42124,-75.68329],label:{en:'Accessible entrance WP29',fr:'Entree accessible WP29'}},
+  {coord:[45.42181,-75.68342],label:{en:'Accessible entrance WP30',fr:'Entree accessible WP30'}},
+  {coord:[45.42179,-75.68222],label:{en:'Accessible entrance WP31',fr:'Entree accessible WP31'}},
+  {coord:[45.42116,-75.68214],label:{en:'Accessible entrance WP32',fr:'Entree accessible WP32'}},
+  {coord:[45.42127,-75.6816],label:{en:'Accessible entrance WP33',fr:'Entree accessible WP33'}},
+  {coord:[45.42078,-75.68179],label:{en:'Accessible entrance WP34',fr:'Entree accessible WP34'}},
+  {coord:[45.42053,-75.68139],label:{en:'Accessible entrance WP35',fr:'Entree accessible WP35'}},
+  {coord:[45.42049,-75.68058],label:{en:'Accessible entrance WP36',fr:'Entree accessible WP36'}},
+  {coord:[45.41995,-75.68048],label:{en:'Accessible entrance WP37',fr:'Entree accessible WP37'}},
+  {coord:[45.41994,-75.67962],label:{en:'Accessible entrance WP38',fr:'Entree accessible WP38'}},
+  {coord:[45.41976,-75.67908],label:{en:'Accessible entrance WP39',fr:'Entree accessible WP39'}},
+  {coord:[45.42006,-75.67887],label:{en:'Accessible entrance WP40',fr:'Entree accessible WP40'}},
+  {coord:[45.41961,-75.67872],label:{en:'Accessible entrance WP41',fr:'Entree accessible WP41'}},
+  {coord:[45.42184,-75.68046],label:{en:'Accessible entrance WP42',fr:'Entree accessible WP42'}},
+  {coord:[45.42111,-75.68019],label:{en:'Accessible entrance WP43',fr:'Entree accessible WP43'}},
+  {coord:[45.42075,-75.6787],label:{en:'Accessible entrance WP44',fr:'Entree accessible WP44'}},
+  {coord:[45.42069,-75.67811],label:{en:'Accessible entrance WP45',fr:'Entree accessible WP45'}},
+  {coord:[45.42136,-75.67849],label:{en:'Accessible entrance WP46',fr:'Entree accessible WP46'}},
+  {coord:[45.41951,-75.67738],label:{en:'Accessible entrance WP47',fr:'Entree accessible WP47'}},
+  {coord:[45.41979,-75.67577],label:{en:'Accessible entrance WP48',fr:'Entree accessible WP48'}},
+];
+
 const tunnelLayers=[],overpassLayers=[],accessLayers=[];
 tunnelRoutes.forEach(r=>{tunnelLayers.push(L.polyline(r.coords,{color:'#1A4FA0',weight:5,opacity:.85,dashArray:'10,6'}).bindTooltip(()=>r.label[lang],{sticky:true}))});
 overpassRoutes.forEach(r=>{overpassLayers.push(L.polyline(r.coords,{color:'#B05A00',weight:4,opacity:.82,dashArray:'8,5'}).bindTooltip(()=>r.label[lang],{sticky:true}))});
-accessPaths.forEach(r=>{accessLayers.push(L.polyline(r.coords,{color:'#1A6B3A',weight:5,opacity:.9}).bindTooltip(()=>r.label[lang],{sticky:true}))});
+accessPaths.forEach(r=>{accessLayers.push(L.circleMarker(r.coord,{radius:6,color:'#14532D',weight:2,fillColor:'#22C55E',fillOpacity:.95}).bindTooltip(()=>r.label[lang],{sticky:true}))});
 
 let tunnelsOn=false,accessOn=false;
 function toggleLayers(layers,on){layers.forEach(l=>on?l.addTo(map):map.removeLayer(l))}
@@ -827,6 +919,55 @@ function buildPopup(b){
   </div>`;
 }
 
+decorateCategoryUI();
+
+function makeIcon(cat){
+  const c=catColorHex[cat];
+  const icon=catIcons[cat]||'•';
+  if(cat==='transit'){
+    return L.divIcon({className:'',
+      html:`<div class="cm cm-transit" style="width:26px;height:26px;background:${c}"><span class="cm-emoji" style="transform:rotate(-45deg)">${icon}</span></div>`,
+      iconSize:[26,26],iconAnchor:[13,13],popupAnchor:[0,-17]});
+  }
+  if(cat==='food'){
+    return L.divIcon({className:'',
+      html:`<div class="cm cm-food" style="width:30px;height:30px;background:${c};">${icon}</div>`,
+      iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-18]});
+  }
+  return L.divIcon({className:'',
+    html:`<div class="cm" style="width:28px;height:28px;background:${c}"><span class="cm-emoji">${icon}</span></div>`,
+    iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-17]});
+}
+
+function buildPopup(b){
+  const col=catColorHex[b.cat];
+  const name=b.name[lang];
+  const desc=b.desc[lang];
+  const resList=(b.resources[lang]||[]).map(r=>`<li>${r}</li>`).join('');
+  const accList=(b.access[lang]||[]).map(a=>`<li><span class="ai">â™¿</span>${a}</li>`).join('');
+  const connHTML=b.connections[lang]&&b.connections[lang].length
+    ?b.connections[lang].map((c,i)=>`<div style="margin-bottom:4px"><span class="ctag ctag-${b.connTypes[i]}">${b.connTypes[i]==='tunnel'?(lang==='en'?'ðŸš‡ Tunnel':'ðŸš‡ Tunnel'):(lang==='en'?'ðŸŒ‰ Overpass':'ðŸŒ‰ Passerelle')}</span>${c}</div>`).join('')
+    :`<div class="no-conn">${lang==='en'?'No indoor connections â€” outdoor walking required':'Aucune connexion intÃ©rieure â€” marche Ã  l\'extÃ©rieur requise'}</div>`;
+  const tabs=[
+    {id:'about',  en:'About',    fr:'Ã€ propos'},
+    {id:'resources',en:'Resources',fr:'Ressources'},
+    {id:'access', en:'Access â™¿', fr:'AccÃ¨s â™¿'},
+    {id:'routes', en:'Routes',   fr:'Trajets'},
+  ];
+  const tabHTML=tabs.map((t,i)=>`<div class="ptab${i===0?' active':''}" data-tab="${t.id}">${t[lang]}</div>`).join('');
+  return `<div>
+    <div class="ph" style="background:${col}">
+      <h3>${name}</h3>
+      <div class="ph-code">${b.code}</div>
+    </div>
+    <div class="ptabs">${tabHTML}</div>
+    <div class="ppanel active" data-panel="about"><p>${desc}</p><span class="cat-pill" style="background:${col}">${catIcons[b.cat]||''} ${b.cat}</span></div>
+    <div class="ppanel" data-panel="resources"><ul class="res-list">${resList}</ul></div>
+    <div class="ppanel" data-panel="access"><ul class="acc-list">${accList}</ul></div>
+    <div class="ppanel" data-panel="routes"><div class="conn-sec">${connHTML}</div></div>
+  </div>`;
+}
+
 buildings.forEach(b=>{
   const m=L.marker([b.lat,b.lng],{icon:makeIcon(b.cat)})
     .bindPopup(()=>buildPopup(b),{maxWidth:310})
@@ -859,6 +1000,20 @@ function renderList(cat){
       <div class="b-info">
         <div class="b-name">${b.name[lang]}</div>
         <div class="b-meta">${b.code} · ${b.cat}</div>
+      </div>`;
+    el.addEventListener('click',()=>highlightItem(b.code,true));
+    list.appendChild(el);
+  });
+}
+function renderList(cat){
+  const list=document.getElementById('blist');list.innerHTML='';
+  const filtered=cat==='all'?buildings:buildings.filter(b=>b.cat===cat);
+  filtered.forEach(b=>{
+    const el=document.createElement('div');el.className='bi';el.dataset.code=b.code;
+    el.innerHTML=`<div class="b-dot" style="background:${catColorHex[b.cat]}"></div><div class="b-ico">${catIcons[b.cat]||''}</div>
+      <div class="b-info">
+        <div class="b-name">${b.name[lang]}</div>
+        <div class="b-meta">${b.code} Â· ${b.cat}</div>
       </div>`;
     el.addEventListener('click',()=>highlightItem(b.code,true));
     list.appendChild(el);
