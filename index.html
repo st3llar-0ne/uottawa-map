@@ -327,7 +327,7 @@ const buildings=[
      fr:['Rez-de-chaussée entièrement accessible','Ascenseur à tous les étages','Relié à la bibliothèque Morisset (rdc + 2e) — sans sortir','Relié à l\'édifice Montpetit (2e étage, corridor 201)','Passerelle vers Tabaret']},
    connections:{en:['Corridor to Morisset Library (ground + 2nd)','Corridor to Montpetit (2nd floor)','Overpass to Tabaret (TBT)'],fr:['Corridor vers Morisset (rdc + 2e)','Corridor vers Montpetit (2e)','Passerelle vers Tabaret']},connTypes:['overpass','overpass','overpass']},
 
-  {code:'MRS',name:{en:'Morisset Hall (Library)',fr:'Édifice Morisset (Bibliothèque)'},lat:45.4231,lng:-75.6846,cat:'library',
+  {code:'MRt',name:{en:'Morisset Hall (Library)',fr:'Édifice Morisset (Bibliothèque)'},lat:45.4231,lng:-75.6846,cat:'library',
    desc:{en:"uOttawa's main library with 7 floors of study spaces, archives, and research support. Your student card unlocks borrowing, printing, and scanning.",
          fr:"La bibliothèque principale de l'uOttawa avec 7 étages d'espaces d'étude, d'archives et de soutien à la recherche. Votre carte étudiante donne accès aux prêts, à l'impression et à la numérisation."},
    resources:{
@@ -453,7 +453,7 @@ const buildings=[
            fr:['Entrée accessible','Ascenseur à tous les étages','Bâtiment moderne entièrement conforme à la LAPH','Toilettes accessibles à tous les étages']},
    connections:{en:[],fr:[]},connTypes:[]},
 
-  {code:'SCI',name:{en:"D'Iorio Hall",fr:"Édifice D'Iorio"},lat:45.4209,lng:-75.6810,cat:'academic',
+  {code:'DRO',name:{en:"D'Iorio Hall",fr:"Édifice D'Iorio"},lat:45.4209,lng:-75.6810,cat:'academic',
    desc:{en:'Chemistry and Biochemistry teaching and research labs. First-year science students spend significant time here.',
          fr:"Laboratoires d'enseignement et de recherche en chimie et biochimie. Les étudiants de première année en sciences y passent beaucoup de temps."},
    resources:{
@@ -463,7 +463,7 @@ const buildings=[
            fr:['Entrée accessible','Accès par ascenseur','Toilettes accessibles']},
    connections:{en:[],fr:[]},connTypes:[]},
 
-  {code:'100L',name:{en:'100 Laurier (Admin Hub)',fr:'100, avenue Laurier (Administration)'},lat:45.4241,lng:-75.6851,cat:'services',
+  {code:'LRR',name:{en:'100 Laurier (Admin Hub)',fr:'100, avenue Laurier (Administration)'},lat:45.4241,lng:-75.6851,cat:'services',
    desc:{en:'Key administrative hub: Registrar, academic success, financial aid, and disability accommodations — all in one place.',
          fr:"Carrefour administratif clé : Bureau du registraire, réussite académique, aide financière et accommodements pour les personnes handicapées — tout au même endroit."},
    resources:{
@@ -473,7 +473,7 @@ const buildings=[
            fr:['Entrée accessible sur l\'avenue Laurier','Ascenseur à tous les étages','Toilettes accessibles à chaque étage','File virtuelle pour tous les services — rejoignez-la depuis n\'importe où']},
    connections:{en:[],fr:[]},connTypes:[]},
 
-  {code:'PEZ',name:{en:'Perez Hall',fr:'Édifice Perez'},lat:45.4238,lng:-75.6848,cat:'services',
+  {code:'PRZ',name:{en:'Perez Hall',fr:'Édifice Perez'},lat:45.4238,lng:-75.6848,cat:'services',
    desc:{en:'Student support and wellness services near the southern campus. Connected to Leblanc Residence.',
          fr:"Services de soutien et de bien-être pour les étudiants, situés au sud du campus. Relié à la résidence Leblanc."},
    resources:{
@@ -733,16 +733,16 @@ const tunnelRoutes=[
    label:{en:'🚇 Underground Tunnel: Marion ↔ STEM ↔ CBY ',fr:'🚇 Tunnel souterrain : Marion ↔ STEM ↔ CBY'}},
 ];
 const overpassRoutes=[
-  {coords:[[45.4217,-75.6836],[45.4216,-75.6837]],label:{en:'🌉 UCU ↔ Morisset Library',fr:'🌉 Centre universitaire ↔ Bibliothèque Morisset'}},
-  {coords:[[45.4216,-75.6837],[45.4214,-75.6836]],label:{en:'🌉 UCU ↔ Montpetit (2nd floor)',fr:'🌉 Centre universitaire ↔ Montpetit (2e)'}},
-  {coords:[[45.4214,-75.6836],[45.4215,-75.6834]],label:{en:'🌉 UCU ↔ Tabaret',fr:'🌉 Centre universitaire ↔ Tabaret'}},
-  {coords:[[45.4215,-75.6834],[45.4212,-75.6831]],label:{en:'🌉 Fauteux ↔ Leblanc',fr:'🌉 Fauteux ↔ Leblanc'}},
-  {coords:[[45.4212,-75.6831],[45.4214,-75.6824]],label:{en:'🌉 Fauteux ↔ Brooks',fr:'🌉 Fauteux ↔ Brooks'}},
-  {coords:[[45.4214,-75.6824],[45.4216,-75.6825]],label:{en:'🌉 Fauteux ↔ Thompson (2nd floor)',fr:'🌉 Fauteux ↔ Thompson (2e)'}},
-  {coords:[[45.4216,-75.6825],[45.4218,-75.6819]],label:{en:'🌉 Thompson ↔ Morisset (2nd floor)',fr:'🌉 Thompson ↔ Morisset (2e)'}},
-  {coords:[[45.4218,-75.6819],[45.4219,-75.6820]],label:{en:'🌉 Lamoureux ↔ Montpetit (floors 2–4)',fr:'🌉 Lamoureux ↔ Montpetit (2e–4e)'}},
-  {coords:[[45.4219,-75.6820],[45.4226,-75.6827]],label:{en:'🌉 Vanier ↔ FSS (4th floor)',fr:'🌉 Vanier ↔ Sciences sociales (4e)'}},
-  {coords:[[45.4226,-75.6827],[45.4224,-75.6834]],label:{en:'🌉 Vanier ↔ FSS (4th floor)',fr:'🌉 Vanier ↔ Sciences sociales (4e)'}},
+  {coords:[[45.4217,-75.6836],[45.4216,-75.6837]],label:{en:'🌉 FSS ↔ VNR',fr:'🌉 FSS ↔ VNR'}},
+  {coords:[[45.4216,-75.6837],[45.4214,-75.6836]],label:{en:'🌉 FSS ↔ VNR',fr:'🌉 FSS ↔ VNR'}},
+  {coords:[[45.4214,-75.6836],[45.4215,-75.6834]],label:{en:'🌉 FSS ↔ VNR',fr:'🌉 FSS ↔ VNR'}},
+  {coords:[[45.4215,-75.6834],[45.4212,-75.6831]],label:{en:'🌉 VNR ↔ LMX',fr:'🌉 VNR ↔ LMX'}},
+  {coords:[[45.4212,-75.6831],[45.4214,-75.6824]],label:{en:'🌉 VNR ↔ LMX',fr:'🌉 VNR ↔ LMX'}},
+  {coords:[[45.4214,-75.6824],[45.4216,-75.6825]],label:{en:'🌉 VNR ↔ LMX',fr:'🌉 VNR ↔ LMX'}},
+  {coords:[[45.4216,-75.6825],[45.4218,-75.6819]],label:{en:'🌉 VNR ↔ LMX',fr:'🌉 VNR ↔ LMX'}},
+  {coords:[[45.4218,-75.6819],[45.4219,-75.6820]],label:{en:'🌉 LMX ↔ MNT',fr:'🌉 LMX ↔ MNT'}},
+  {coords:[[45.4219,-75.6820],[45.4226,-75.6827]],label:{en:'🌉 MNT ↔ UCU',fr:'🌉 MNT ↔ UCU'}},
+  {coords:[[45.4226,-75.6827],[45.4224,-75.6834]],label:{en:'🌉 UCU ↔ MRT',fr:'🌉 UCU ↔ MRT'}},
   {coords:[[45.4224,-75.6834],[45.4233,-75.6842]],label:{en:'🌉 Perez ↔ Leblanc',fr:'🌉 Perez ↔ Leblanc'}},
   {coords:[[45.4233,-75.6842],[45.4239,-75.6847]],label:{en:'🌉 Perez ↔ Leblanc',fr:'🌉 Perez ↔ Leblanc'}},
   {coords:[[45.4233,-75.6842],[45.4235,-75.6838]],label:{en:'🌉 Perez ↔ Leblanc',fr:'🌉 Perez ↔ Leblanc'}},
